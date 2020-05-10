@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Q&A Teams: {{tags}}</h1>
+{% if teams %}
+    <ul class="list-inline">
+    {% for team in teams %}
+        <li class="list-inline-item">
+            <a class="info" href="team/{{ team.id }}" target="_blank">{{ team.name }}</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <h2>OPS! There is no team established for these tags... </h2>
+{% endif %}
+
+<h3>Should you manage your own team?</h3>
+<form method="post" action="{{ newteamurl }}" onsubmit="window.location.reload()">
+    <input type="hidden" name="tags" value="{{ tags }}"/>
+    <label>Team name:</label><br>
+    <input type="text" id="teamname" name="name"><br><br>
+    <input type="submit" value="Submit">
+</form>
+{% endblock %}

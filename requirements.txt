@@ -3,3 +3,5 @@ Flask-PyMongo
 pymongo
 requests
 celery
+flask-restful
+pytest

@@ -1,20 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Q&A Team: {{tags}}</h1>
+<h1>Q&A Team: {{team.name}}</h1>
+
+{% if team.participants %}
 <ul class="list-inline">
-{% for question in questions %}
+{% for member in team.participants %}
 	<li class="list-inline-item">
 		<div class="hovereffect">
-			<img src="{{ question.owner.profile_image }}" class="img-responsive">
+			<img src="{{ member.profile_image }}" class="img-responsive">
 			<div class="overlay">
-	        	<h2>{{ question.owner.display_name }}</h2>
-	        	<a class="info" href="{{ question.owner.link }}" target="_blank">Profile</a>
+	        	<h2>{{ member.display_name }}</h2>
+	        	<a class="info" href="{{ member.link }}" target="_blank">Profile</a>
 	    	</div>
     	</div>
 	</li>
 {% endfor %}
 </ul>
+{% endif %}
 
 <h2>Sample Questions</h2>
 <ul>

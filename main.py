@@ -17,7 +17,7 @@ def hello():
 
 @app.route("/teams/<tags>")
 def teams(tags='python'):
-    new_team_url = BASE_URL + 'teams/'
+    new_team_url = BASE_URL + 'team/'
     tags_list = tags.split(';')
     teams = _get_teams(tags_list)
     logging.info('[GET_TEAMS]: {}'.format(teams))
@@ -33,15 +33,23 @@ def _get_teams(tag_list, size=10):
     return result
 
 
-@app.route("/team/<tags>")
-def team(tags='python'):
-    tags_list = tags.split(';')
-    #TODO define and change this to TEAM entity!!!
-    questions = _get_questions(tags_list)
-    if(len(questions) > 0):
-        return render_template('team.html', tags=tags, questions=questions)
-    return 'NO TAG TEAM WAS FOUND FOR: {}'.format(tags)
+@app.route("/team/<id>")
+def team(id):
+    team = _get_team(id)
+    logging.info('[GET_TEAM] ID {}: {}'.format(id, team))
+    if team:
+        # TODO: ADD QUESTIONS!!!
+        # TODO: ADD FACTS!!!
+        return render_template('team.html', team=team)
+    return 'OPS! NO TEAM WAS FOUND WITH ID {}. =('.format(id)
 
+def _get_team(id):
+    url = BASE_URL + 'team/{}/'.format(id)
+    team = requests.get(url)
+    result = None
+    if team.status_code == 200:
+        result = team.json()
+    return result
 
 def _get_questions(tag_list, size=10):
     url = BASE_URL + 'teams/{}/'.format(';'.join(tag_list))

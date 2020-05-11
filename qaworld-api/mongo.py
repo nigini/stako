@@ -46,9 +46,10 @@ class APIMongo:
 			a_team = team
 		collection.save(a_team)
 
-	def _get_team(self, team_id):
+	def get_team(self, team_id):
 		collection = self.db['teams']
-		return collection.find_one({'id': team_id})
+		a_team = collection.find_one({'id': team_id}, {'_id': 0})
+		return loads(dumps(a_team))
 
 #	@queue.task
 	def save_message(self, message, channel='team_test'):

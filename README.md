@@ -1,8 +1,26 @@
-# qaworld-teams
+# Stacko
+
 What if you would like a more group-focused question and answer experience in sites like Stack Overflow?
 
-This is a proof of concept project, where you can see a team view over Stack Overflow site. It basically uses Stack Overflow's API to retrieve questions related to tags and present it in different ways.
+This is a proof of concept project, where you can see a team view over Stack Overflow site. It uses Stack Overflow's API to retrieve data related to users, questions, and answers, to group activities around tags/technologies.
 
-You will need a MongoDB (which we use to store retrieved info locally). After having that, configure the settings, install the requirements using PIP or whatever you prefer, and run the Flask dev server: 
+It has two components: a Restful API (inside `qaworld-api` folder), and the Stacko website in the main folder. Both are built using Python3 and Flask.
 
-    FLASK_APP=main.py flask run
+## How to run it?
+
+1. You will need a MongoDB. After installing it, configure the `settings.QAW_API_URL` on the main folder, to point to the MongoDB process. 
+
+2. Install the `requirements` using PIP or whatever you prefer. We recommend using a Python3 virtualenv for that.
+
+3. Run the Flask API dev server: 
+
+    ```
+    cd qaworld-api
+    FLASK_APP=api.py flask run
+    ```
+
+4. Using another console, run the main site dev server:
+
+    ```
+    FLASK_RUN_PORT=8000 FLASK_APP=main.py flask run
+    ```

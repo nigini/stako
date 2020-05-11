@@ -7,20 +7,36 @@ from mongo import APIMongo
 from random import random
 
 
-class Team(Resource):
-
+class APIBase(Resource):
     def __init__(self):
         if app.testing:
             settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
         self.data_source = APIMongo(settings)
 
+    @staticmethod
+    def get_tag_list(tags_string):
+        tag_list = tags_string.split(';')
+        tag_list.sort()
+        return tag_list
+
+
+class TeamList(APIBase):
     def get(self, tags):
-        logging.info('[GET] Team {}'.format(tags))
-        team = self.data_source.get_teams(self.get_tag_list(tags))
+        logging.info('[TeamList] Tags {}'.format(tags))
+        teams = self.data_source.get_teams(self.get_tag_list(tags))
+        return teams
+
+
+class TeamByID(APIBase):
+    def get(self, id):
+        logging.info('[Team] ID {}'.format(id))
+        team = self.data_source.get_team(id)
         if team is None:
-            team = {}
+            return {}
         return team
 
+
+class NewTeam(APIBase):
     def post(self):
         # TODO Check tags existence
         tags = request.form.get('tags')
@@ -31,12 +47,6 @@ class Team(Resource):
         team['tags'] = self.get_tag_list(tags)
         team['name'] = name
         self.data_source.save_team(team)
-
-    @staticmethod
-    def get_tag_list(tags_string):
-        tag_list = tags_string.split(';')
-        tag_list.sort()
-        return tag_list
 
     @staticmethod
     def get_empty_team():
@@ -57,8 +67,9 @@ app = Flask(__name__)
 api = Api(app)
 
 prefix = '/v1'
-api.add_resource(Team, '{}/teams/<tags>/'.format(prefix), endpoint='team')
-api.add_resource(Team, '{}/teams/'.format(prefix), endpoint='teams')
+api.add_resource(TeamList, '{}/teams/<tags>/'.format(prefix))
+api.add_resource(TeamByID, '{}/team/<id>/'.format(prefix))
+api.add_resource(NewTeam, '{}/team/'.format(prefix))
 
 if __name__ == '__main__':
     app.run(debug=settings.DEBUG)

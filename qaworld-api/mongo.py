@@ -1,8 +1,12 @@
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 from bson.json_util import loads, dumps
+import logging
+
 #from celery import Celery
 #queue = Celery()
-
+COLLECTION_USERS = 'users'
+COLLECTION_ACTIVITIES = 'activities'
 
 class APIMongo:
 
@@ -10,6 +14,40 @@ class APIMongo:
 		self.client = MongoClient(settings.MONGODB_URL)
 		self.db = self.client[settings.MONGODB_NAME]
 		#queue = Celery('mongo', broker=settings.BROKER_URL)
+
+	def save_user(self, user):
+		collection = self.db[COLLECTION_USERS]
+		result = collection.update_one({'uuid': user['uuid']}, {'$set': user}, upsert=True)
+		logging.info('[Mongo:SaveUser] Result: {}'.format(result.raw_result))
+
+		if result.upserted_id or result.modified_count == 1:
+			return True
+		else:
+			return False
+
+	def get_user(self, user_uuid):
+		collection = self.db[COLLECTION_USERS]
+		a_user = collection.find_one({'uuid': user_uuid}, {'_id': 0})
+		if a_user:
+			return loads(dumps(a_user))
+		else:
+			return {}
+
+	def save_activity(self, activity):
+		collection = self.db[COLLECTION_ACTIVITIES]
+		result = collection.insert_one(activity)
+		saved = type(result.inserted_id) is ObjectId
+		logging.info('[Mongo:SaveActivity] Saved? {}'.format(saved))
+		return saved
+
+	def get_activities(self, user_uuid):
+		collection = self.db[COLLECTION_ACTIVITIES]
+		a_user = collection.find_one({'uuid': user_uuid}, {'_id': 0})
+		if a_user:
+			return loads(dumps(a_user))
+		else:
+			return {}
+
 
 #	@queue.task
 	def save_questions(self, questions_list):

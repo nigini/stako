@@ -11,15 +11,9 @@
   },
   "browser_action": {
     "default_icon": {
-<<<<<<< HEAD
       "16": "img/stako16.png",
       "48": "img/stako48.png",
       "128": "img/stako128.png"
-=======
-      "16": "stako16.png",
-      "48": "stako48.png",
-      "128": "stako128.png"
->>>>>>> d52a521d46468ec17d2a996ad0b0afe19b7845a2
     },
     "default_popup": "popup.html",
     "default_title": "StackOverflow Visits"
@@ -33,7 +27,6 @@
     "activeTab",
     "storage",
     "webNavigation",
-<<<<<<< HEAD
     "identity",
     "https://accounts.google.com/*",
     "https://www.googleapis.com/*"
@@ -43,9 +36,4 @@
     "scopes":["https://www.googleapis.com/auth/userinfo.profile"]
   },
   "content_security_policy": "script-src 'self' 'unsafe-eval' https://apis.google.com/; object-src 'self'"
-=======
-    "declarativeContent",
-    "https://stackoverflow.com/*"
-  ]
->>>>>>> d52a521d46468ec17d2a996ad0b0afe19b7845a2
 }

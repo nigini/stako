@@ -1,0 +1,31 @@
+{
+  "manifest_version": 2,
+  "name": "Stack Overflow visit history",
+  "version": "1.0",
+  "description": "This Chrome extension stores your Stack Overflow URL visits and provides statistics.",
+  "icons": {
+    "128": "stako128.png",
+    "48": "stako48.png",
+    "16": "stako16.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "16": "stako16.png",
+      "48": "stako48.png",
+      "128": "stako128.png"
+    },
+    "default_popup": "popup.html",
+    "default_title": "StackOverflow Visits"
+  },
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "webNavigation"
+  ],
+  "content_security_policy": "script-src 'self' https://cdn.zingchart.com/zingchart.min.js; object-src 'self'"
+}

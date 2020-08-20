@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stako User Profile</title>
+  <style>body {min-width: 150px;}</style>
+  <script src="jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.zingchart.com/zingchart.min.js"></script>
+  <script type="module" src="zing.js"></script>
+  <script nomodule src="/zingchart/zingchart.min.js"></script>
+  <script type="text/javascript" src="popup.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+  <section id="identity">
+    <section id="intro">
+      <div id="profile_pic">
+        <img src="img/profile_pic.jpg" alt="User Profile Picture">
+      </div>
+      <div id="name_and_motto">
+        <h1>Nickname: </h1>
+        <h2>Motto: </h2>
+      </div>
+      <div id="pins">
+        <h2>Pins</h2>
+        <div id="pin_images">
+          <img src="img/pins/amazon.png">
+          <img src="img/pins/cat.jpg">
+          <img src="img/pins/hci.jpg">
+          <img src="img/pins/java.png">
+          <img src="img/pins/pride.jpg">
+          <img src="img/pins/tx.png">
+          <img src="img/pins/us.jpg">
+          <img src="img/pins/uw.jpg">
+          <img src="img/pins/women-in-stem.jpg">
+        </div>
+      </div>
+    </section>
+    <section id="communities">
+      <h2>Communities: </h2>
+      <section id="tags">
+        <div id="community1">
+          #Community1
+        </div>
+        <div id="community2">
+          #Community2
+        </div>
+        <div id="community3">
+          #Community3
+        </div>
+      </section>
+    </section>
+  </section>
+  <section id="activity">
+    <div id="activityChart"></div>
+  </section>
+  <section id="survey">
+    <!-- Likert survey code taken from https://codepen.io/Buttonpresser/pen/qiuIx-->
+    <div class="wrap">
+      <h1 class="likert-header">Survey</h1>
+      <form action="">
+        <label class="statement">Survey question 1.</label>
+        <ul class='likert'>
+          <li>
+            <input type="radio" name="likert" value="strong_agree">
+            <label>Strongly agree</label>
+          </li>
+          <li>
+            <input type="radio" name="likert" value="strong_agree">
+            <label>Agree</label>
+          </li>
+          <li>
+            <input type="radio" name="likert" value="strong_agree">
+            <label>Neutral</label>
+          </li>
+          <li>
+            <input type="radio" name="likert" value="disagree">
+            <label>Disagree</label>
+          </li>
+          <li>
+            <input type="radio" name="likert" value="strong_agree">
+            <label>Strongly disagree</label>
+          </li>
+        </ul>
+      </form>
+    </div>
+  </section>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  'nickname': 'Korra',
+  'uuid': str(uuid.uuid4()),
+  'email': 'korra@avatar.com',
+  'moto': 'I'm the Avatar!',
+  'start_date': int(datetime.timestamp(datetime.utcnow())),
+  'activity': {
+    'visits': 8,
+    'weekly_visits': {'SUN': 1, 'MON': 4, 'TUE': 3, 'WED': 7, 'THU': 0, 'FRI': 2, 'SAT': 0},
+    'updated': int(datetime.timestamp(datetime.utcnow()))
+  },
+  'communities': {
+    'air_bending': {
+      'visits': 5,
+      'answers': 3,
+      'questions': 2,
+      'comments': 1,
+      'updated': int(datetime.timestamp(datetime.utcnow()))
+    },
+    'water_bending': {
+      'visits': 6,
+      'answers': 4,
+      'questions': 0,
+      'comments': 8,
+      'updated': int(datetime.timestamp(datetime.utcnow()))
+    }
+  }
+}

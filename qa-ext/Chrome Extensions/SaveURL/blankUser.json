@@ -1,0 +1,21 @@
+{
+  'nickname': '',
+  'uuid': str(uuid.uuid4()),
+  'email': '',
+  'moto': '',
+  'start_date': int(datetime.timestamp(datetime.utcnow())),
+  'activity': {
+    'visits': 0,
+    'weekly_visits': {'SUN': 0, 'MON': 0, 'TUE': 0, 'WED': 0, 'THU': 0, 'FRI': 0, 'SAT': 0},
+    'updated': int(datetime.timestamp(datetime.utcnow()))
+  },
+  'communities': {
+    'a_tag': {
+      'visits': 0,
+      'answers': 0,
+      'questions': 0,
+      'comments': 0,
+      'updated': int(datetime.timestamp(datetime.utcnow()))
+    }
+  }
+}

@@ -1,24 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
+<<<<<<< HEAD
   <title>Stako User Profile</title>
   <style>body {min-width: 150px;}</style>
   <script src="jquery-3.5.1.min.js"></script>
-  <script src="https://cdn.zingchart.com/zingchart.min.js"></script>
-  <script type="module" src="zing.js"></script>
-  <script nomodule src="/zingchart/zingchart.min.js"></script>
-  <script type="text/javascript" src="popup.js"></script>
+  <!-- <script type="text/javascript" src="popup.js"></script> -->
+  <script type="text/javascript" src="oauth.js"></script>
+  <script src="https://apis.google.com/js/platform.js" async defer></script> -->
+  <script src="https://apis.google.com/js/platform.js?onload=init" async defer></script>
+  <!-- <script async defer src="https://apis.google.com/js/api.js"
+      onload="this.onload=function(){};handleClientLoad()"
+      onreadystatechange="if (this.readyState === 'complete') this.onload()">
+    </script> -->
+  <meta name="google-signin-client_id" content="504661212570-gn5nc6mtccuj7hsjcn419vjfapbq4f9a.apps.googleusercontent.com">
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
   <section id="identity">
+    <div class="g-signin2" data-onsuccess="onSignIn"></div>
     <section id="intro">
       <div id="profile_pic">
         <img src="img/profile_pic.jpg" alt="User Profile Picture">
       </div>
       <div id="name_and_motto">
-        <h1>Nickname: </h1>
-        <h2>Motto: </h2>
+        <h1 id="nickname">Nickname </h1>
+        <h2 id="motto">Motto </h2>
       </div>
       <div id="pins">
         <h2>Pins</h2>
@@ -38,14 +45,14 @@
     <section id="communities">
       <h2>Communities: </h2>
       <section id="tags">
-        <div id="community1">
-          #Community1
+        <div id="comm1">
+          #Comm1
         </div>
-        <div id="community2">
-          #Community2
+        <div id="comm2">
+          #Comm2
         </div>
-        <div id="community3">
-          #Community3
+        <div id="comm3">
+          #Comm3
         </div>
       </section>
     </section>
@@ -84,5 +91,16 @@
       </form>
     </div>
   </section>
+=======
+  <title>Stack Overflow Visit History</title>
+  <style>body {min-width: 150px;}</style>
+  <script src="jquery-3.5.1.min.js"></script>
+  <script type="text/javascript" src="popup.js"></script>
+</head>
+<body>
+  <h1>StackOverflow Recent Visits</h1>
+  <h2>Url: <span id="url"></span></h2>
+  <h2>Time: <span id="timestamp"></span></h2>
+>>>>>>> d52a521d46468ec17d2a996ad0b0afe19b7845a2
 </body>
 </html>

@@ -19,9 +19,5 @@ chrome.webNavigation.onCommitted.addListener(function(details) {
         console.log(newVisitList);
         chrome.storage.local.set({visitList: newVisitList});
       })
-<<<<<<< HEAD
   }  //chrome.storage.local.clear();
-=======
-  }  chrome.storage.local.clear();
->>>>>>> d52a521d46468ec17d2a996ad0b0afe19b7845a2
 }, {url: [{hostSuffix : 'stackoverflow.com'}]});

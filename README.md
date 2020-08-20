@@ -4,7 +4,7 @@ What if you would like a more group-focused question and answer experience in si
 
 This is a proof of concept project, where you can see a team view over Stack Overflow site. It uses Stack Overflow's API to retrieve data related to users, questions, and answers, to group activities around tags/technologies.
 
-It has two components: a Restful API (inside `qaworld-api` folder), and the Stacko website in the main folder. Both are built using Python3 and Flask.
+It has two components: a Restful API (inside `stako-api` folder), and the Stako website in the main folder. Both are built using Python3 and Flask.
 
 ## How to run it?
 
@@ -15,7 +15,7 @@ It has two components: a Restful API (inside `qaworld-api` folder), and the Stac
 3. Run the Flask API dev server: 
 
     ```
-    cd qaworld-api
+    cd stako-api
     FLASK_APP=api.py flask run
     ```
 

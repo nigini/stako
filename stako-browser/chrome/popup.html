@@ -2,17 +2,13 @@
 <html>
 <head>
   <title>Stako User Profile</title>
-  <style>body {min-width: 150px;}</style>
   <script src="jquery-3.5.1.min.js"></script>
   <script type="text/javascript" src="oauth.js"></script>
-  <script src="https://apis.google.com/js/platform.js" async defer></script> -->
-  <script src="https://apis.google.com/js/platform.js?onload=init" async defer></script>
-  <meta name="google-signin-client_id" content="504661212570-gn5nc6mtccuj7hsjcn419vjfapbq4f9a.apps.googleusercontent.com">
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
+  <span id="login">LOGIN</span>
   <section id="identity">
-    <div class="g-signin2" data-onsuccess="onSignIn"></div>
     <section id="intro">
       <div id="profile_pic">
         <img src="img/profile_pic.jpg" alt="User Profile Picture">
@@ -22,7 +18,6 @@
         <h2 id="motto">Motto </h2>
       </div>
       <div id="pins">
-        <h2>Pins</h2>
         <div id="pin_images">
           <img src="img/pins/amazon.png">
           <img src="img/pins/cat.jpg">
@@ -37,7 +32,7 @@
       </div>
     </section>
     <section id="communities">
-      <h2>Communities: </h2>
+      <h2>Crews: </h2>
       <section id="tags">
         <div id="comm1">
           #Comm1

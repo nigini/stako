@@ -28,6 +28,7 @@
     "storage",
     "webNavigation",
     "identity",
+    "identity.email",
     "https://accounts.google.com/*",
     "https://www.googleapis.com/*"
   ],

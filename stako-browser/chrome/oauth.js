@@ -1,63 +1,112 @@
-// For this part to work, it must be run on a server.
-// python3 -m http.server
-// and then go to http://localhost:8000/popup.html
-window.onload = function() {
-    chrome.identity.getAuthToken({interactive: true}, function(token) {
-        if(chrome.runtime.lastError)
-          console.log(chrome.runtime.lastError);
-        else
-          console.log(token);
-          gapi.load('auth2', function() {
-            auth2 = gapi.auth2.init({
-              client_id: '504661212570-gn5nc6mtccuj7hsjcn419vjfapbq4f9a.apps.googleusercontent.com',
-              api_key: 'AIzaSyBqqou8EeYObgVw_X5f2JrYhvGyZM8gjxM',
-              fetch_basic_profile: true,
-              scopes: 'profile'
+window.onload = function () {
+    chrome.identity.getAuthToken({interactive: true}, function (token) {
+        if (chrome.runtime.lastError) {
+            console.log(chrome.runtime.lastError);
+        } else {
+            console.log(token);
+            chrome.identity.getProfileUserInfo(function (info) {
+                console.log(info.email)
+                chrome.storage.local.set({email: info.email});
+                document.getElementById('login').innerText = info.email;
+                matchStakoUser(info.email);
             });
-            // Sign the user in, and then retrieve their profile
-            auth2.signIn().then(function() {
-              var profile = auth2.currentUser.get().getBasicProfile();
-              console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
-              console.log('Name: ' + profile.getName());
-              console.log('Image URL: ' + profile.getImageUrl());
-              console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
-              alert(profile.getId() + ": " + profile.getName());
-            });
-          });
-          handleClientLoad();
+        }
     });
 };
 
-// Some code taken from https://github.com/google/google-api-javascript-client/blob/master/samples/authSample.html
+const STAKO_API_URL = 'https://stako.org/api/v1/';
+const STAKO_USER_URL = STAKO_API_URL + 'user/';
 
-// load the API client and auth2 library
-function handleClientLoad() {
-  gapi.load('client:auth2', initClient);
+function matchStakoUser(userEmail) {
+    let user;
+    chrome.storage.local.get({'STAKO_USER': null}, function (items) {
+        user = items['STAKO_USER'];
+        //TODO: When should this be updated?
+        if (!user) {
+            user = searchStakoUser(userEmail);
+            if(!user) {
+                createStakoUser(userEmail);
+            }
+        }
+        if(user) {
+            document.getElementById('nickname').innerText = user.nickname;
+            document.getElementById('motto').innerText = user.motto;
+        }
+    });
 }
 
-function initClient() {
-  gapi.client.init({
-    apiKey: 'AIzaSyBqqou8EeYObgVw_X5f2JrYhvGyZM8gjxM',
-    clientId: '504661212570-gn5nc6mtccuj7hsjcn419vjfapbq4f9a.apps.googleusercontent.com',
-    scope: 'profile'
-  }).then(function() {
-    gapi.auth2.getAuthInstance().signIn();
-    makeApiCall();
-  })
+function searchStakoUser(userEmail) {
+    console.log('searching stako user: ' + userEmail);
+    const search_url = STAKO_USER_URL + '?key=email&value=' + userEmail;
+    const request = new Request(search_url, {method: 'GET'});
+    fetch(request)
+        .then(response => {
+            if (response.status === 200) {
+                response.json()
+                    .then( stakoUser => {
+                        console.log('found stako user: ' + JSON.stringify(stakoUser));
+                        chrome.storage.local.set({STAKO_USER: stakoUser});
+                    });
+            } else if (response.status === 404) {
+                return null;
+            } else {
+                response.text()
+                    .then(text => {
+                        throw Error('Could not search for user: HTTP_STATUS ' + response.status + ' + ' + text)
+                    });
+            }
+        })
+        .then(response => {
+            console.debug(response);
+        })
+        .catch(error => {
+            console.error(error);
+        });
 }
 
-function makeApiCall() {
-  gapi.client.people.people.get({
-    // resourceName:
-    // To get information about the authenticated user, specify people/me.
-    // To get information about a google account, specify people/{account_id}.
-    // To get information about a contact, specify the resource name that identifies the contact as returned by people.connections.list.
-    'resourceName': 'people/me',
-    'personFields.includeField': 'person.names,person.biographies,person.photos'
-  }).then(function(response) {
-    response.setHeader("Set-Cookie", "HttpOnly;Secure;SameSite=Strict");
-    $('#nickname').text(response.result.names[0].givenName);
-    $('#motto').text(response.result.biographies[0]);
-    $('#profile_pic').image(response.result.photos[0]);
-  })
+function createStakoUser(userEmail) {
+    console.log('creating stako user: ' + userEmail);
+    const request = new Request(STAKO_USER_URL, {method: 'POST', headers: {'Content-Type': 'application/json'}});
+    fetch(request)
+        .then(response => {
+            if (response.status === 200) {
+                response.json()
+                    .then( stakoUser => {
+                        console.log('created stako user: ' + JSON.stringify(stakoUser));
+                        stakoUser.email = userEmail;
+                        return updateStakoUser(stakoUser);
+                    });
+            } else {
+                response.text()
+                    .then(text => {throw Error('Could not create new STAKO user: HTTP_STATUS ' + response.status + ' + ' + text)});
+            }
+        })
+        .then(response => {
+            console.debug(response);
+        })
+        .catch(error => {
+            console.error(error);
+        });
+}
+
+function updateStakoUser(user) {
+    console.log('updating stako user: ' + JSON.stringify(user));
+    const request_url = STAKO_USER_URL + user.uuid + '/';
+    const request = new Request(request_url,
+                            {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(user)});
+    fetch(request)
+        .then(response => {
+            if (response.status === 200) {
+                chrome.storage.local.set({STAKO_USER: user});
+                console.log('Saved local stako user: ' + user.uuid);
+                return user;
+            } else {
+                throw new Error('Could not update STAKO user: ' + JSON.stringify(user));
+            }
+        })
+        .then(response => {
+            console.debug(response);
+        }).catch(error => {
+        console.error(error);
+    });
 }

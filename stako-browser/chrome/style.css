@@ -5,7 +5,7 @@ html,body {
   justify-content: center;
   height: 350px;
   width: 350px;
-  background-color: #99ffcc;
+/*  background-color: #99ffcc;*/
   margin: auto;
   padding: 10px;
 }
@@ -35,16 +35,15 @@ h2 {
   justify-content: flex-start;
 }
 #profile_pic {
-  width: 50px;
-  height: 50px;
+  width: 70px;
+  height: 70px;
   position: relative;
   overflow: auto;
-  border-radius: 50%;
 }
 #profile_pic img {
-  width: auto;
-  height: 100%;
-  margin-left: -10px;
+  width: 90%;
+  height: 90%;
+  border-radius: 50%;
 }
 #name_and_motto {
   display: block;

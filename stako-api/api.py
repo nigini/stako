@@ -26,7 +26,7 @@ class APIBase(Resource):
 
 class User(APIBase):
     def get(self, uuid):
-        logging.info('[GetUser] ID {}'.format(uuid))
+        logging.info('[API:GetUser] ID {}'.format(uuid))
         a_user = self.data_source.get_user(uuid)
         return a_user
 
@@ -57,8 +57,11 @@ class NewUser(APIBase):
     def post(self):
         new_user = self.get_empty_user()
         if self.data_source.save_user(new_user):
+            logging.info('[API:PostUser] UUID {}'.format(new_user['uuid']))
             return {'uuid': new_user['uuid']}
         else:
+            # TODO: Should return and ERROR?
+            logging.info('[API:PostUser] ERROR!')
             return {}
 
     @staticmethod
@@ -98,7 +101,7 @@ class UserActivity(APIBase):
                 new_activity['UUID'] = uuid
                 result = self.data_source.save_activity(new_activity)
                 if result:
-                    logging.info('[PostActivity] Activity {}'.format(new_activity))
+                    logging.info('[API:PostActivity] Activity {}'.format(new_activity))
                     new_activity.pop('_id', None)
                     return new_activity
                 else:
@@ -120,14 +123,14 @@ class UserActivity(APIBase):
 
 class TeamList(APIBase):
     def get(self, tags):
-        logging.info('[TeamList] Tags {}'.format(tags))
+        logging.info('[API:TeamList] Tags {}'.format(tags))
         teams = self.data_source.get_teams(self.get_tag_list(tags))
         return teams
 
 
 class TeamByID(APIBase):
     def get(self, id):
-        logging.info('[Team] ID {}'.format(id))
+        logging.info('[API:GetTeam] ID {}'.format(id))
         team = self.data_source.get_team(id)
         if team is None:
             return {}
@@ -140,7 +143,7 @@ class NewTeam(APIBase):
         tags = request.form.get('tags')
         name = request.form.get('name')
         # TODO Add current user as member
-        logging.info('[POST] Team {}: {}'.format(name, tags))
+        logging.info('[API:PostTeam] Team {}: {}'.format(name, tags))
         team = self.get_empty_team()
         team['tags'] = self.get_tag_list(tags)
         team['name'] = name

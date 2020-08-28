@@ -55,7 +55,7 @@ class User(APIBase):
 
 class NewUser(APIBase):
     def get(self):
-        search = request.json
+        search = request.args
         if search and ('key' in search.keys()) and ('value' in search.keys()):
             if search['key'] in ['uuid', 'email']:
                 user = self.data_source.get_user(search['value'], search['key'])
@@ -63,8 +63,8 @@ class NewUser(APIBase):
                     return user
                 else:
                     return {'MESSAGE': 'Could not find a user matching search {}.'.format(search)}, 404
-            return {'MESSAGE': 'Malformed search request: KEY nor in [uuid, email].'}, 400
-        return {'MESSAGE': 'Malformed search request: need a {KEY:K,VALUE:V} JSON.'}, 400
+            return {'MESSAGE': 'Malformed search request: KEY not in [uuid, email].'}, 400
+        return {'MESSAGE': 'Malformed search request: need [KEY:K,VALUE:V] params.'}, 400
 
 
     def post(self):

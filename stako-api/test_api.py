@@ -58,25 +58,27 @@ class TestUserAPI(unittest.TestCase):
 			uuid = response.get_json()['uuid']
 			email = response.get_json()['email']
 			##MALFORMED REQUEST
-			response = client.get(URL + 'user/', data=json.dumps({}), content_type='application/json')
+			response = client.get(URL + 'user/')
 			self.assertEqual(400, response.status_code)
-			response = client.get(URL + 'user/', data=json.dumps({'key': 'uuid', 'value': uuid}), content_type='text/plain')
+			response = client.get(URL + 'user/?key={}'.format('uuid'))
+			self.assertEqual(400, response.status_code)
+			response = client.get(URL + 'user/?value={}'.format(uuid))
 			self.assertEqual(400, response.status_code)
 			##NON-EXISTENT KEY
-			response = client.get(URL + 'user/', data=json.dumps({'key': 'NON_EXISTENT', 'value': uuid}), content_type='application/json')
+			response = client.get(URL + 'user/?key={}&value={}'.format('NON_EXISTENT', uuid))
 			self.assertEqual(400, response.status_code)
 			##NON-EXISTENT VALUE
-			response = client.get(URL + 'user/', data=json.dumps({'key': 'uuid', 'value': 'NON_EXISTENT'}), content_type='application/json')
+			response = client.get(URL + 'user/?key={}&value={}'.format('uuid', 'NON_EXISTENT'))
 			self.assertEqual(404, response.status_code)
 
 			##BY UUID
-			response = client.get(URL + 'user/', data=json.dumps({'key': 'uuid', 'value': uuid}), content_type='application/json')
+			response = client.get(URL + 'user/?key={}&value={}'.format('uuid', uuid))
 			self.assertEqual(200, response.status_code)
 			user = response.get_json()
 			self.assertEqual(uuid, user['uuid'])
 			self.assertEqual(email, user['email'])
 			#BY_EMAIL
-			response = client.get(URL + 'user/', data=json.dumps({'key': 'email', 'value': email}), content_type='application/json')
+			response = client.get(URL + 'user/?key={}&value={}'.format('email', email))
 			self.assertEqual(200, response.status_code)
 			user = response.get_json()
 			self.assertEqual(uuid, user['uuid'])

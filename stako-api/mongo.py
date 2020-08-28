@@ -25,9 +25,9 @@ class APIMongo:
 		else:
 			return False
 
-	def get_user(self, user_uuid):
+	def get_user(self, user_value, user_key='uuid'):
 		collection = self.db[COLLECTION_USERS]
-		a_user = collection.find_one({'uuid': user_uuid}, {'_id': 0})
+		a_user = collection.find_one({user_key: user_value}, {'_id': 0})
 		if a_user:
 			return loads(dumps(a_user))
 		else:

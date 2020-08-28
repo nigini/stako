@@ -40,6 +40,48 @@ class TestUserAPI(unittest.TestCase):
 			self.assertTrue('communities' in user)
 			self.assertTrue('start_date' in user)
 
+	def test_users_get_by_any_key(self):
+		with app.test_client() as client:
+			#CREATE NEW
+			response = client.post(URL + 'user/')
+			self.assertEqual(200, response.status_code)
+			self.assertTrue('uuid' in response.get_json())
+			user = response.get_json()
+			user['nickname'] = 'uTester'
+			user['email'] = 'user@tester.com'
+			user['motto'] = 'uTester will test it all!'
+			user.pop('activity', None)
+			user.pop('communities', None)
+			response = client.put(URL + 'user/{}/'.format(user['uuid']), data=json.dumps(user), content_type='application/json')
+			self.assertEqual(200, response.status_code)
+			#SEARCH
+			uuid = response.get_json()['uuid']
+			email = response.get_json()['email']
+			##MALFORMED REQUEST
+			response = client.get(URL + 'user/', data=json.dumps({}), content_type='application/json')
+			self.assertEqual(400, response.status_code)
+			response = client.get(URL + 'user/', data=json.dumps({'key': 'uuid', 'value': uuid}), content_type='text/plain')
+			self.assertEqual(400, response.status_code)
+			##NON-EXISTENT KEY
+			response = client.get(URL + 'user/', data=json.dumps({'key': 'NON_EXISTENT', 'value': uuid}), content_type='application/json')
+			self.assertEqual(400, response.status_code)
+			##NON-EXISTENT VALUE
+			response = client.get(URL + 'user/', data=json.dumps({'key': 'uuid', 'value': 'NON_EXISTENT'}), content_type='application/json')
+			self.assertEqual(404, response.status_code)
+
+			##BY UUID
+			response = client.get(URL + 'user/', data=json.dumps({'key': 'uuid', 'value': uuid}), content_type='application/json')
+			self.assertEqual(200, response.status_code)
+			user = response.get_json()
+			self.assertEqual(uuid, user['uuid'])
+			self.assertEqual(email, user['email'])
+			#BY_EMAIL
+			response = client.get(URL + 'user/', data=json.dumps({'key': 'email', 'value': email}), content_type='application/json')
+			self.assertEqual(200, response.status_code)
+			user = response.get_json()
+			self.assertEqual(uuid, user['uuid'])
+			self.assertEqual(email, user['email'])
+
 	def test_users_update(self):
 		with app.test_client() as client:
 			response = client.post(URL + 'user/')

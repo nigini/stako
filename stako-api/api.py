@@ -33,6 +33,7 @@ class User(APIBase):
     def put(self, uuid):
         user = self.data_source.get_user(uuid)
         if user:
+            # TODO: Block/sort out non-json requests
             new_data = request.json
             for key in ['nickname', 'email', 'motto']:
                 if key in new_data:
@@ -53,6 +54,18 @@ class User(APIBase):
 
 
 class NewUser(APIBase):
+    def get(self):
+        search = request.json
+        if search and ('key' in search.keys()) and ('value' in search.keys()):
+            if search['key'] in ['uuid', 'email']:
+                user = self.data_source.get_user(search['value'], search['key'])
+                if user:
+                    return user
+                else:
+                    return {'MESSAGE': 'Could not find a user matching search {}.'.format(search)}, 404
+            return {'MESSAGE': 'Malformed search request: KEY nor in [uuid, email].'}, 400
+        return {'MESSAGE': 'Malformed search request: need a {KEY:K,VALUE:V} JSON.'}, 400
+
 
     def post(self):
         new_user = self.get_empty_user()

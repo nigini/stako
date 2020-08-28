@@ -183,7 +183,7 @@ api = Api(app)
 prefix = '/v1'
 api.add_resource(User, '{}/user/<uuid>/'.format(prefix))
 api.add_resource(NewUser, '{}/user/'.format(prefix))
-api.add_resource(UserActivity, '{}/activity/<uuid>/'.format(prefix))
+api.add_resource(UserActivity, '{}/user/<uuid>/activity/'.format(prefix))
 api.add_resource(TeamList, '{}/teams/<tags>/'.format(prefix))
 api.add_resource(TeamByID, '{}/team/<id>/'.format(prefix))
 api.add_resource(NewTeam, '{}/team/'.format(prefix))

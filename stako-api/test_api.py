@@ -10,6 +10,7 @@ from api import app, ACTIVITY_TYPE_SO_VISIT
 app.testing = True
 
 URL = 'http://127.0.0.1:5000/v1/'
+URL_ACTIVITY = URL + 'user/{}/activity/'
 
 
 class TestUserAPI(unittest.TestCase):
@@ -121,7 +122,7 @@ class TestUserAPI(unittest.TestCase):
 		with app.test_client() as client:
 			an_activity = {'URL': 'https://stackoverflow.com/questions/20001229/'}
 			# NO USER
-			response = client.post(URL + 'activity/{}/'.format('SOME_BROKEN_UUID'), data=json.dumps(an_activity),
+			response = client.post(URL_ACTIVITY.format('SOME_BROKEN_UUID'), data=json.dumps(an_activity),
 									content_type='application/json')
 			self.assertEqual(404, response.status_code)
 
@@ -129,7 +130,7 @@ class TestUserAPI(unittest.TestCase):
 			response = client.post(URL + 'user/')
 			self.assertEqual(200, response.status_code)
 			uuid = response.get_json()['uuid']
-			response = client.post(URL + 'activity/{}/'.format(uuid), data=json.dumps(an_activity),
+			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(an_activity),
 									content_type='application/json')
 			self.assertEqual(200, response.status_code)
 			saved_activity = response.get_json()
@@ -138,12 +139,12 @@ class TestUserAPI(unittest.TestCase):
 			self.assertEqual(ACTIVITY_TYPE_SO_VISIT, saved_activity['type'])
 			# NO URL
 			a_bad_activity = {}
-			response = client.post(URL + 'activity/{}/'.format(uuid), data=json.dumps(a_bad_activity),
+			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(a_bad_activity),
 									content_type='application/json')
 			self.assertEqual(400, response.status_code)
 			# BAD URL
 			a_bad_activity = {'URL': 'stackoverflow.com'}
-			response = client.post(URL + 'activity/{}/'.format(uuid), data=json.dumps(a_bad_activity),
+			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(a_bad_activity),
 									content_type='application/json')
 			self.assertEqual(400, response.status_code)
 

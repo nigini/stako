@@ -1,4 +1,5 @@
 # Stako
+# Benjamin branch
 
 What if you would like a more group-focused question and answer experience in sites like Stack Overflow?
 
@@ -8,11 +9,11 @@ It has two components: a Restful API (inside `stako-api` folder), and the Stako 
 
 ## How to run it?
 
-1. You will need a MongoDB. After installing it, configure the `settings.QAW_API_URL` on the main folder, to point to the MongoDB process. 
+1. You will need a MongoDB. After installing it, configure the `settings.QAW_API_URL` on the main folder, to point to the MongoDB process.
 
 2. Install the `requirements` using PIP or whatever you prefer. We recommend using a Python3 virtualenv for that.
 
-3. Run the Flask API dev server: 
+3. Run the Flask API dev server:
 
     ```
     cd stako-api

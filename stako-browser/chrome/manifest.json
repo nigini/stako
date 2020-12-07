@@ -30,11 +30,19 @@
     "identity",
     "identity.email",
     "https://stako.org/*",
-    "https://stackoverflow.com/*"
+    "https://stackoverflow.com/*",
+    "declarativeContent"
   ],
   "oauth2": {
     "client_id": "504661212570-gn5nc6mtccuj7hsjcn419vjfapbq4f9a.apps.googleusercontent.com",
     "scopes":["https://www.googleapis.com/auth/userinfo.profile"]
   },
+  "content_scripts": [
+    {
+      "matches": ["https://*.stackoverflow.com/questions/*"],
+      "css": ["design.css"],
+      "js": ["design.js"]
+    }
+  ],
   "content_security_policy": "script-src 'self' 'unsafe-eval' https://apis.google.com/; object-src 'self'"
 }

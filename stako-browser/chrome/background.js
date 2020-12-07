@@ -1,4 +1,5 @@
 chrome.webNavigation.onCommitted.addListener(saveTabActivity, {url: [{hostSuffix: 'stackoverflow.com'}]});
+//Add another listener for a method that is going to keep track of mouse over activity.
 
 function saveTabActivity(details) {
     // 0 indicates the navigation happens in the tab content window

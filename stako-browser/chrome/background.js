@@ -1,5 +1,23 @@
 chrome.webNavigation.onCommitted.addListener(saveTabActivity, {url: [{hostSuffix: 'stackoverflow.com'}]});
-//Add another listener for a method that is going to keep track of mouse over activity.
+
+/*
+This method listens for a message from design.js, which controls the content scripts of the page. When a mouse over message is sent,
+the callback function grabs the type (mouse over), url, and time from the sent message and then creates a JSON object with that information
+and saves it using the saveStakoActivity method.
+*/
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        if(request.type == "mouse over") {
+            var mouseOver = {
+                type: request.type,
+                tabUrl: request.url,
+                timestamp: request.time,
+            };
+            saveStakoActivity(mouseOver);
+            sendResponse({testURL: request.url, testTime: request.time});
+        }
+    }
+);
 
 function saveTabActivity(details) {
     // 0 indicates the navigation happens in the tab content window

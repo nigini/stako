@@ -6,7 +6,10 @@ from datetime import datetime
 from pymongo import MongoClient
 import json
 
-from api import app, ACTIVITY_TYPE_SO_VISIT
+from api import app, UserActivity
+ACTIVITY_TYPE_SO_VISIT = UserActivity.ACTIVITY_TYPE_SO_VISIT
+ACTIVITY_TYPE_SO_CLICK = UserActivity.ACTIVITY_TYPE_SO_CLICK
+
 app.testing = True
 
 URL = 'http://127.0.0.1:5000/v1/'
@@ -120,7 +123,8 @@ class TestUserAPI(unittest.TestCase):
 
 	def test_activity(self):
 		with app.test_client() as client:
-			an_activity = {'URL': 'https://stackoverflow.com/questions/20001229/'}
+			an_activity = {'URL': 'https://stackoverflow.com/questions/20001229/',
+						   'TYPE': ACTIVITY_TYPE_SO_VISIT}
 			# NO USER
 			response = client.post(URL_ACTIVITY.format('SOME_BROKEN_UUID'), data=json.dumps(an_activity),
 									content_type='application/json')
@@ -136,8 +140,9 @@ class TestUserAPI(unittest.TestCase):
 			saved_activity = response.get_json()
 			self.assertEqual(uuid, saved_activity['UUID'])
 			self.assertEqual(an_activity['URL'], saved_activity['URL'])
-			self.assertEqual(ACTIVITY_TYPE_SO_VISIT, saved_activity['type'])
-			# NO URL
+			self.assertEqual(ACTIVITY_TYPE_SO_VISIT, saved_activity['TYPE'])
+
+			# NO URL or TYPE
 			a_bad_activity = {}
 			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(a_bad_activity),
 									content_type='application/json')
@@ -147,6 +152,30 @@ class TestUserAPI(unittest.TestCase):
 			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(a_bad_activity),
 									content_type='application/json')
 			self.assertEqual(400, response.status_code)
+			# MISSING ACTIVITY "TYPE"
+			a_bad_activity = an_activity.copy()
+			a_bad_activity.pop('TYPE', None)
+			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(a_bad_activity),
+								   content_type='application/json')
+			self.assertEqual(400, response.status_code)
+			# NON-EXISTING ACTIVITY TYPE
+			a_bad_activity['TYPE'] = 'NOT_VALID'
+			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(a_bad_activity),
+								   content_type='application/json')
+			self.assertEqual(400, response.status_code)
+
+			# MISSING DATA FOR VALID TYPE
+			another_activity = an_activity.copy()
+			another_activity['TYPE'] = ACTIVITY_TYPE_SO_CLICK
+			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(another_activity),
+								   content_type='application/json')
+			self.assertEqual(400, response.status_code)
+			# FIXING FOR click TYPE
+			another_activity['ELEMENT'] = 'USER:1234'
+			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(another_activity),
+								   content_type='application/json')
+			self.assertEqual(200, response.status_code)
+
 
 
 class Teams:#TestTeamsAPI(unittest.TestCase):

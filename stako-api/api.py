@@ -8,8 +8,6 @@ from random import random
 import uuid
 from urllib.parse import urlparse
 
-ACTIVITY_TYPE_SO_VISIT = 'stackoverflow:visit'
-
 
 class APIBase(Resource):
     def __init__(self):
@@ -103,15 +101,28 @@ class NewUser(APIBase):
 
 
 class UserActivity(APIBase):
+    ACTIVITY_TYPE_SO_VISIT = 'stackoverflow:visit'
+    ACTIVITY_TYPE_SO_MOUSE = 'stackoverflow:mouse'
+    ACTIVITY_TYPE_SO_CLICK = 'stackoverflow:click'
+
+    ACTIVITY_TYPES = {}
+    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_VISIT] = []
+    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_MOUSE] = ['ELEMENT', 'DURATION']
+    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_CLICK] = ['ELEMENT']
+
+
     def post(self, uuid):
         user = self.data_source.get_user(uuid)
         if user:
-            url = request.json.pop('URL', None)
-            valid_url = urlparse(url)
-            if url and all([valid_url.scheme, valid_url.netloc, valid_url.path]):
+            request_data = request.json
+            logging.info('[API:PostActivity] REQUEST DATA: {}'.format(request_data))
+            valid_data = self.validate_activity_data(request_data)
+            if valid_data:
                 new_activity = self.get_empty_activity()
-                new_activity['URL'] = url
                 new_activity['UUID'] = uuid
+                new_activity['URL'] = valid_data.pop('URL')
+                new_activity['TYPE'] = valid_data.pop('TYPE')
+                new_activity['DATA'] = valid_data
                 result = self.data_source.save_activity(new_activity)
                 if result:
                     logging.info('[API:PostActivity] Activity {}'.format(new_activity))
@@ -120,17 +131,34 @@ class UserActivity(APIBase):
                 else:
                     return {'MESSAGE': '500: Could not add activity to user {}!'.format(uuid)}, 500
             else:
-                return {'MESSAGE': '400: Malformed User Activity: Missing or bad URL!'}, 400
+                return {'MESSAGE': '400: Malformed User Activity!'}, 400
         else:
             return {'MESSAGE': '404: User {} not found!'.format(uuid)}, 404
+
+    def validate_activity_data(self, request_data):
+        activity_type = request_data.pop('TYPE', None)
+        url = request_data.pop('URL', None)
+        if activity_type and url:
+            valid_url = urlparse(url)
+            if url and all([valid_url.scheme, valid_url.netloc, valid_url.path]):
+                if activity_type in self.ACTIVITY_TYPES:
+                    activity = {'URL': url, 'TYPE': activity_type}
+                    for entry in self.ACTIVITY_TYPES[activity_type]:
+                        try:
+                            activity[entry] = request_data.pop(entry)
+                        except KeyError:
+                            return None
+                    return activity
+        return None
 
     @staticmethod
     def get_empty_activity():
         return {
             'UUID': '',
             'URL': '',
-            'type': ACTIVITY_TYPE_SO_VISIT,
-            'timestamp': int(datetime.timestamp(datetime.utcnow()))
+            'TYPE': '',
+            'TIMESTAMP': int(datetime.timestamp(datetime.utcnow())),
+            'DATA': {}
         }
 
 

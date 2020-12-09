@@ -3,10 +3,9 @@ chrome.webNavigation.onCommitted.addListener(saveTabActivity, {url: [{hostSuffix
 function saveTabActivity(details) {
     // 0 indicates the navigation happens in the tab content window
     if (details.frameId === 0) {
-        // create visit object containing tabUrl and timestamp
-        var visit = {
-            tabUrl: details.url,
-            timestamp: details.timeStamp,
+        let visit = {
+            TYPE: 'stackoverflow:visit',
+            URL: details.url
         };
         saveStakoActivity(visit);
     }
@@ -15,8 +14,7 @@ function saveTabActivity(details) {
 const STAKO_API_URL = 'https://stako.org/api/v1/';
 const STAKO_ACTIVITY_URL = STAKO_API_URL + 'user/{}/activity/';
 
-function saveStakoActivity(activity) {
-    let activity_body = {URL: activity.tabUrl};
+function saveStakoActivity(activity_body) {
     chrome.storage.local.get({'STAKO_USER': null}, function (user) {
         let uuid = user.STAKO_USER.uuid;
         if(uuid) {
@@ -28,12 +26,12 @@ function saveStakoActivity(activity) {
                         console.log('SYNCED: ' + JSON.stringify(activity_body));
                     } else {
                         console.log('COULD NOT SYNC: ' + JSON.stringify(activity_body));
-                        addActivityToCache(activity);
+                        addActivityToCache(activity_body);
                     }
                 });
         } else {
             console.log('CANNOT SYNC ACTIVITY WITHOUT A USER_ID! TRY TO LOGIN AGAIN!');
-            addActivityToCache(activity);
+            addActivityToCache(activity_body);
         }
     });
 }

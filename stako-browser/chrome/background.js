@@ -7,14 +7,21 @@ and saves it using the saveStakoActivity method.
 */
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
-        if(request.type == "mouse over") {
+        if(request.type == "stackoverflow:mouse") {
             var mouseOver = {
-                type: request.type,
-                tabUrl: request.url,
-                timestamp: request.time,
+                TYPE: request.type,
+                URL: request.url,
+                ELEMENT: 'EX_USER:1234',
+                DURATION: request.time,
             };
             saveStakoActivity(mouseOver);
             sendResponse({testURL: request.url, testTime: request.time});
+        } else if(request.type == "stackoverflow:click") {
+            var click = {
+                TYPE: 'stackoverflow:click',
+                URL: 'SOME_SO_URL',
+                ELEMENT: 'EX_USER:1234'
+            };
         }
     }
 );

@@ -4,14 +4,15 @@ Creates a banner right above the answer portion of the page and populates it wit
 */
 var mainContent = document.getElementById("mainbar");
 var parent = mainContent.parentNode;
+var bannerWrapper = document.createElement("div");
 var banner = document.createElement("div");
-banner.textContent = "Crew: ";
 banner.id = "Crew";
-//If they change the class name of is-selected it may no longer match the page though??
-banner.classList.add("is-selected");
-parent.insertBefore(banner, mainContent);
+bannerWrapper.id = "bannerWrapper";
+bannerWrapper.textContent = "Crew: ";
+bannerWrapper.appendChild(banner);
+parent.insertBefore(bannerWrapper, mainContent);
 
-var type = 1;
+var type = 2;
 if(type === 1) {
   var tags = document.querySelectorAll(".question .post-tag");
   for(let tag of tags) {
@@ -20,45 +21,57 @@ if(type === 1) {
     getTimeOut(tag);
     trackClick(tag);
   }
-  console.log(tags);
 } else if (type === 2) {
-  var tags = document.querySelectorAll(".user-info.user-hover");
+  var tags = document.querySelectorAll(".user-info");
+  //Set used to prevent a single contributor from appearing multiple times in the design.
+  var contributors = new Set();
   for(let tag of tags) {
     var tagChildren = tag.children;
+    var avatar = false;
     for(let child of tagChildren) {
-
+      if(child.classList.contains("user-gravatar32")) {
+        //If there is only one child node that means that that user has no information to display, so only
+        //display the avatars that have more than one child node.
+        if(child.childNodes.length > 1) {
+          //The middle child nodes
+          var userURL = child.childNodes[1].href;
+          if(!contributors.has(userURL)) {
+            contributors.add(userURL);
+            avatar = true;
+          }
+        }
+      } else {
+        child.classList.add("popup-hidden");
+      }
     }
-    tag.removeChild();
-    //banner.appendChild(tag);
+    // If the user has an avatar, display that user as part of the crew.
+    if(avatar) {
+      getTimeIn(tag);
+      getTimeOut(tag);
+      trackClick(tag);
+      banner.appendChild(tag);
+    }
+    console.log(tag);
   }
-  console.log(tags);
 }
 
 const DELAY = 1000;
 var timeIn = null;
 /*
-This event listener keeps track of the mouse's movement, and if it hovers over the "crew" div it sends a message to background.js with a JSON
-object containing the type, url, and time of the interaction.
+This event listener keeps track of the mouse's movement, and if the mouse enters the parameter element's space, it records at what
+time that happened.
 */
 
-/*
-Old mouse over implementation.
-banner.addEventListener('mousemove', function (e) {
-  var element = e.target;
-  if (element.id == 'Crew') {
-    //alert("You moused over the div!");
-    chrome.runtime.sendMessage({type: "mouse over", url: window.location.href, time: new Date()}, function(response){
-      console.log(response.testURL + " " + response.testTime);
-    });
-  }
-});
-*/
 function getTimeIn(element) {
   element.addEventListener('mouseenter', function (e) {
     timeIn = new Date();
   });
 }
 
+/*
+This event listener keeps track of the mouse's movement, and if the mouse exits the parameter element's space, it calculates the difference in time
+and if the mouse had hovered long enough, makes a call to the API to record an impression.
+*/
 function getTimeOut(element) {
   element.addEventListener('mouseleave', function (e) {
     var timeOut = new Date();
@@ -67,7 +80,7 @@ function getTimeOut(element) {
     // check whether timeIn is null and whether the difference is greater than one second.
     if(timeIn && totalTime >= DELAY) {
       chrome.runtime.sendMessage({type: "stackoverflow:mouse", url: window.location.href, time: totalTime}, function(response){
-        console.log(response.testURL + " " + response.testTime);
+        console.log(response.testType + " " + response.testURL + " " + response.testTime);
       });
     }
     timeIn = null;
@@ -76,10 +89,8 @@ function getTimeOut(element) {
 
 function trackClick(element) {
   element.addEventListener('click', function (e) {
-    chrome.runtime.sendMessage({type: "stackoverflow:click", url: window.location.href});
+    chrome.runtime.sendMessage({type: "stackoverflow:click", url: window.location.href}, function(response) {
+      console.log(response.testType + " " + response.testURL);
+    });
   });
 }
-
-
-//console.log(parent);
-//alert("Hello from your Chrome extension!")

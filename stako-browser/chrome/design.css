@@ -1,5 +1,19 @@
 #Crew {
   margin: 1%;
   width: 80%;
-  background-color: var(--highlight-bg);
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+
+#bannerWrapper {
+  background-color: var(--highlight-bg, black);
+}
+
+.popup-hidden {
+  display: none
+}
+
+.popup-show {
+  display: inline-block;
 }

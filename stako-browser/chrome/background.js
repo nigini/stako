@@ -11,17 +11,17 @@ chrome.runtime.onMessage.addListener(
             var mouseOver = {
                 TYPE: request.type,
                 URL: request.url,
-                ELEMENT: 'EX_USER:1234',
                 DURATION: request.time,
             };
             saveStakoActivity(mouseOver);
-            sendResponse({testURL: request.url, testTime: request.time});
+            sendResponse({testType: request.type, testURL: request.url, testTime: request.time});
         } else if(request.type == "stackoverflow:click") {
             var click = {
-                TYPE: 'stackoverflow:click',
-                URL: 'SOME_SO_URL',
-                ELEMENT: 'EX_USER:1234'
+                TYPE: request.type,
+                URL: request.url,
             };
+            saveStakoActivity(click);
+            sendResponse({testType: request.type, testURL: request.url});
         }
     }
 );
@@ -41,11 +41,12 @@ function saveTabActivity(details) {
 const STAKO_API_URL = 'https://stako.org/api/v1/';
 const STAKO_ACTIVITY_URL = STAKO_API_URL + 'user/{}/activity/';
 
-function saveStakoActivity(activity) {
-    let activity_body = {URL: activity.tabUrl};
+function saveStakoActivity(activity_body) {
     chrome.storage.local.get({'STAKO_USER': null}, function (user) {
         let uuid = user.STAKO_USER.uuid;
         if(uuid) {
+            //Add the uuid to the type of activity.
+            activity_body["Element"] = uuid;
             const request = new Request(STAKO_ACTIVITY_URL.replace('{}', uuid),
                 {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(activity_body)});
             fetch(request)
@@ -54,15 +55,16 @@ function saveStakoActivity(activity) {
                         console.log('SYNCED: ' + JSON.stringify(activity_body));
                     } else {
                         console.log('COULD NOT SYNC: ' + JSON.stringify(activity_body));
-                        addActivityToCache(activity);
+                        addActivityToCache(activity_body);
                     }
                 });
         } else {
             console.log('CANNOT SYNC ACTIVITY WITHOUT A USER_ID! TRY TO LOGIN AGAIN!');
-            addActivityToCache(activity);
+            addActivityToCache(activity_body);
         }
     });
 }
+
 
 function addActivityToCache(activity){
     chrome.storage.local.get({'STAKO_ACTIVITY_CACHE': []}, function (item) {

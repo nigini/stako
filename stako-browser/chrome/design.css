@@ -1,19 +1,24 @@
 #Crew {
-  margin: 1%;
-  width: 80%;
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
+  padding: 1%;
+  align-content: flex-start;
 }
 
 #bannerWrapper {
   background-color: var(--highlight-bg, black);
 }
 
-.popup-hidden {
+.popup-hidden, .hidden {
   display: none
 }
 
 .popup-show {
   display: inline-block;
+}
+
+.user-info {
+  margin: 1%;
 }

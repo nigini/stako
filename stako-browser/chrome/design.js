@@ -46,12 +46,15 @@ if(type === 1) {
     }
     // If the user has an avatar, display that user as part of the crew.
     if(avatar) {
+      //Remove the default hovering behavior from Stack Overflow to avoid losing track of the user's mouse movements.
+      tag.classList.remove("user-hover");
       getTimeIn(tag);
       getTimeOut(tag);
       trackClick(tag);
       banner.appendChild(tag);
+    } else {
+      tag.classList.add("hidden");
     }
-    console.log(tag);
   }
 }
 
@@ -65,6 +68,9 @@ time that happened.
 function getTimeIn(element) {
   element.addEventListener('mouseenter', function (e) {
     timeIn = new Date();
+    for(let child of e.target.children) {
+      child.classList.remove("popup-hidden");
+    }
   });
 }
 
@@ -76,6 +82,11 @@ function getTimeOut(element) {
   element.addEventListener('mouseleave', function (e) {
     var timeOut = new Date();
     var totalTime = timeOut.getTime() - timeIn.getTime();
+    for(let child of e.target.children) {
+      if(!child.classList.contains("user-gravatar32")) {
+        child.classList.add("popup-hidden");
+      }
+    }
     // get time returns the time in milliseconds.
     // check whether timeIn is null and whether the difference is greater than one second.
     if(timeIn && totalTime >= DELAY) {

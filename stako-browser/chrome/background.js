@@ -1,7 +1,7 @@
 chrome.webNavigation.onCommitted.addListener(saveTabActivity, {url: [{hostSuffix: 'stackoverflow.com'}]});
 
 /*
-This method listens for a message from design.js, which controls the content scripts of the page. When a mouse over message is sent,
+This method listens for a message from design.js, which controls the content scripts of the page. When a mouse over or click message is sent,
 the callback function grabs the type (mouse over), url, and time from the sent message and then creates a JSON object with that information
 and saves it using the saveStakoActivity method.
 */

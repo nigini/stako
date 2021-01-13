@@ -34,8 +34,12 @@ function matchStakoUser(userEmail) {
             });
         }
         if(user) {
-            document.getElementById('nickname').innerText = user.nickname;
-            document.getElementById('motto').innerText = user.motto;
+            if(user.nickname) {
+                document.getElementById('nickname').innerText = user.nickname;
+            }
+            if(user.motto) {
+                document.getElementById('motto').innerText = user.motto;
+            }
         }
     });
 }

@@ -4,6 +4,7 @@
   <title>Stako User Profile</title>
   <script src="jquery-3.5.1.min.js"></script>
   <script type="text/javascript" src="oauth.js"></script>
+  <script src="popup.js"></script>
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
@@ -16,6 +17,7 @@
       <div id="name_and_motto">
         <h1 id="nickname">Nickname </h1>
         <h2 id="motto">Motto </h2>
+        <button id="update-personals-button">Update</button>
       </div>
       <div id="pins">
         <div id="pin_images">
@@ -48,6 +50,17 @@
   </section>
   <section id="activity">
     <div id="activityChart"></div>
+  </section>
+  <section id="activity">
+    <h1>Weekly Activity Summary</h1>
+    <div id="weekly-summary" class="scrollmenu">
+      <p>Tag 1</p>
+      <p>Tag 2</p>
+      <p>Tag 3</p>
+      <p>Tag 4</p>
+      <p>Tag 5</p>
+      <p>Tag 6</p>
+    </div>
   </section>
   <section id="survey">
     <!-- Likert survey code taken from https://codepen.io/Buttonpresser/pen/qiuIx-->

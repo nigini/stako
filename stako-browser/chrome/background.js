@@ -1,5 +1,31 @@
 chrome.webNavigation.onCommitted.addListener(saveTabActivity, {url: [{hostSuffix: 'stackoverflow.com'}]});
 
+/*
+This method listens for a message from design.js, which controls the content scripts of the page. When a mouse over or click message is sent,
+the callback function grabs the type (mouse over), url, and time from the sent message and then creates a JSON object with that information
+and saves it using the saveStakoActivity method.
+*/
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        if(request.type == "stackoverflow:mouse") {
+            var mouseOver = {
+                TYPE: request.type,
+                URL: request.url,
+                DURATION: request.time,
+            };
+            saveStakoActivity(mouseOver);
+            sendResponse({testType: request.type, testURL: request.url, testTime: request.time});
+        } else if(request.type == "stackoverflow:click") {
+            var click = {
+                TYPE: request.type,
+                URL: request.url,
+            };
+            saveStakoActivity(click);
+            sendResponse({testType: request.type, testURL: request.url});
+        }
+    }
+);
+
 function saveTabActivity(details) {
     // 0 indicates the navigation happens in the tab content window
     if (details.frameId === 0) {
@@ -18,6 +44,8 @@ function saveStakoActivity(activity_body) {
     chrome.storage.local.get({'STAKO_USER': null}, function (user) {
         let uuid = user.STAKO_USER.uuid;
         if(uuid) {
+            //Add the uuid to the type of activity.
+            activity_body["Element"] = uuid;
             const request = new Request(STAKO_ACTIVITY_URL.replace('{}', uuid),
                 {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(activity_body)});
             fetch(request)
@@ -35,6 +63,7 @@ function saveStakoActivity(activity_body) {
         }
     });
 }
+
 
 function addActivityToCache(activity){
     chrome.storage.local.get({'STAKO_ACTIVITY_CACHE': []}, function (item) {

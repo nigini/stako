@@ -9,10 +9,16 @@ const DELAY = 1000;
 //This variable keeps track of when a user first mouses over an element and is then used to calculate how long they left their mouse over that element.
 var timeIn = null;
 
+//Manifest file can't completely filter out all the pages we want to filter out, so added an extra regex here to check before editing the page.
+const pageURLRegex = new RegExp('https://*.stackoverflow.com/questions/[0-9]+/*');
+
 //"Main Method" which loads everything into the page after the page has finished loading.
 function init() {
-  var banner = insertBanner();
-  insertDesign(banner);
+  let currURL = "" + window.location.href;
+  if((currURL).match(pageURLRegex)){
+    var banner = insertBanner();
+    insertDesign(banner);
+  }
 }
 
 /*
@@ -25,9 +31,12 @@ function insertBanner() {
   var banner = document.createElement("div");
   banner.id = "Crew";
   bannerWrapper.id = "bannerWrapper";
-  bannerWrapper.textContent = "Crew: ";
   bannerWrapper.appendChild(banner);
   parent.insertBefore(bannerWrapper, mainContent);
+  banner.classList.add("scrollmenu");
+  var crewWord = document.createElement("p");
+  crewWord.textContent = "Crew";
+  banner.appendChild(crewWord);
   return banner;
 }
 
@@ -116,7 +125,7 @@ function getTimeOut(element) {
     if(timeIn && totalTime >= DELAY) {
       //If the condition is met, record the event by sending a message to background.js
       chrome.runtime.sendMessage({type: "stackoverflow:mouse", url: window.location.href, time: totalTime}, function(response){
-        //console.log(response.testType + " " + response.testURL + " " + response.testTime);
+        console.log(response.testType + " " + response.testURL + " " + response.testTime);
       });
     }
     timeIn = null;
@@ -127,7 +136,7 @@ function trackClick(element) {
   //Tracks whether one of the elements of interest has been clicked on.
   element.addEventListener('click', function (e) {
     chrome.runtime.sendMessage({type: "stackoverflow:click", url: window.location.href}, function(response) {
-      //console.log(response.testType + " " + response.testURL);
+      console.log(response.testType + " " + response.testURL);
     });
   });
 }

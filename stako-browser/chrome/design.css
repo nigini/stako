@@ -1,22 +1,36 @@
 #Crew {
   width: 100%;
   display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
-  padding: 1%;
-  align-content: flex-start;
+  align-items: center;
+}
+
+#Crew > p, .scrollmenu .user-info, .popup-show {
+  display: inline-block;
+}
+
+#Crew > p {
+  font: var(--theme-question-body-font-family);
+  font-weight: bold;
+  margin: 1%;
+}
+
+.scrollmenu {
+  overflow: auto;
+  white-space: nowrap;
+}
+
+.scrollmenu .user-info {
+  padding: 14px;
 }
 
 #bannerWrapper {
   background-color: var(--highlight-bg, black);
+  padding: 2%;
+  margin: 1%;
 }
 
 .popup-hidden, .hidden {
   display: none
-}
-
-.popup-show {
-  display: inline-block;
 }
 
 .user-info {

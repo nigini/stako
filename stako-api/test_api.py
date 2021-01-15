@@ -25,6 +25,8 @@ class TestUserAPI(unittest.TestCase):
 		db = client[settings.MONGODB_NAME_TEST]
 		users = db[mongo.COLLECTION_USERS]
 		users.drop()
+		activities = db[mongo.COLLECTION_ACTIVITIES]
+		activities.drop()
 		experiment = db[mongo.COLLECTION_AUTH]
 		experiment.drop()
 		experiment_mongo = ExperimentMongo(settings)
@@ -126,6 +128,7 @@ class TestUserAPI(unittest.TestCase):
 
 	def test_activity(self):
 		with app.test_client() as client:
+			# TODO: Test for all supported activity types!
 			an_activity = {
 				'URL': 'https://stackoverflow.com/questions/20001229/',
 				'TYPE': ACTIVITY_TYPE_SO_VISIT
@@ -136,48 +139,45 @@ class TestUserAPI(unittest.TestCase):
 			self.assertEqual(404, response.status_code)
 
 			# Now with a real user
-			response = client.post(URL + 'user/')
-			self.assertEqual(200, response.status_code)
-			uuid = response.get_json()['uuid']
-			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(an_activity),
+			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(an_activity),
 									content_type='application/json')
 			self.assertEqual(200, response.status_code)
 			saved_activity = response.get_json()
-			self.assertEqual(uuid, saved_activity['UUID'])
+			self.assertEqual(self.tester_uuid, saved_activity['UUID'])
 			self.assertEqual(an_activity['URL'], saved_activity['URL'])
 			self.assertEqual(ACTIVITY_TYPE_SO_VISIT, saved_activity['TYPE'])
 
 			# NO URL or TYPE
 			a_bad_activity = {}
-			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(a_bad_activity),
+			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(a_bad_activity),
 									content_type='application/json')
 			self.assertEqual(400, response.status_code)
 			# BAD URL
 			a_bad_activity = {'URL': 'stackoverflow.com'}
-			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(a_bad_activity),
+			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(a_bad_activity),
 									content_type='application/json')
 			self.assertEqual(400, response.status_code)
 			# MISSING ACTIVITY "TYPE"
 			a_bad_activity = an_activity.copy()
 			a_bad_activity.pop('TYPE', None)
-			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(a_bad_activity),
+			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(a_bad_activity),
 								   content_type='application/json')
 			self.assertEqual(400, response.status_code)
 			# NON-EXISTING ACTIVITY TYPE
 			a_bad_activity['TYPE'] = 'NOT_VALID'
-			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(a_bad_activity),
+			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(a_bad_activity),
 								   content_type='application/json')
 			self.assertEqual(400, response.status_code)
 
 			# MISSING DATA FOR VALID TYPE
 			another_activity = an_activity.copy()
 			another_activity['TYPE'] = ACTIVITY_TYPE_SO_CLICK
-			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(another_activity),
+			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(another_activity),
 								   content_type='application/json')
 			self.assertEqual(400, response.status_code)
 			# FIXING FOR click TYPE
 			another_activity['ELEMENT'] = 'USER:1234'
-			response = client.post(URL_ACTIVITY.format(uuid), data=json.dumps(another_activity),
+			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(another_activity),
 								   content_type='application/json')
 			self.assertEqual(200, response.status_code)
 

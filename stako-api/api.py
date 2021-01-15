@@ -3,9 +3,8 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 from datetime import datetime
 import logging
-from mongo import APIMongo
+from mongo import APIMongo, ExperimentMongo, DataStructure
 from random import random
-import uuid
 from urllib.parse import urlparse
 
 
@@ -14,6 +13,7 @@ class APIBase(Resource):
         if app.testing:
             settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
         self.data_source = APIMongo(settings)
+        self.auth = ExperimentMongo(settings)
 
     @staticmethod
     def get_tag_list(tags_string):
@@ -46,7 +46,6 @@ class User(APIBase):
                 return user
             else:
                 return {'MESSAGE': '500: Could not update user {}!'.format(uuid)}, 500
-
         else:
             return {'MESSAGE': '404: User {} not found!'.format(uuid)}, 404
 
@@ -55,8 +54,18 @@ class NewUser(APIBase):
     def get(self):
         search = request.args
         if search and ('key' in search.keys()) and ('value' in search.keys()):
-            if search['key'] in ['uuid', 'email']:
-                user = self.data_source.get_user(search['value'], search['key'])
+            key = search['key']
+            value = search['value']
+            if key == 'email':
+                email = value
+                uuid = self._authorize(email)
+                if uuid:
+                    key = 'uuid'
+                    value = uuid
+                else:
+                    return {'MESSAGE': 'The email "{}" is not associated to an authorized user.'.format(email)}, 403
+            if key == 'uuid':
+                user = self._get_user(key, value)
                 if user:
                     return user
                 else:
@@ -66,7 +75,7 @@ class NewUser(APIBase):
 
 
     def post(self):
-        new_user = self.get_empty_user()
+        new_user = DataStructure.get_empty_user()
         if self.data_source.save_user(new_user):
             logging.info('[API:PostUser] UUID {}'.format(new_user['uuid']))
             return {'uuid': new_user['uuid']}
@@ -75,29 +84,15 @@ class NewUser(APIBase):
             logging.info('[API:PostUser] ERROR!')
             return {}
 
-    @staticmethod
-    def get_empty_user():
-        return {
-            'nickname': '',
-            'uuid': str(uuid.uuid4()),
-            'email': '',
-            'motto': '',
-            'start_date': int(datetime.timestamp(datetime.utcnow())),
-            'activity': {
-                'visits': 0,
-                'weekly_visits': {'SUN': 0, 'MON': 0, 'TUE': 0, 'WED': 0, 'THU': 0, 'FRI': 0, 'SAT': 0},
-                'updated': int(datetime.timestamp(datetime.utcnow()))
-            },
-            'communities': {
-                'a_tag': {
-                    'visits': 0,
-                    'answers': 0,
-                    'questions': 0,
-                    'comments': 0,
-                    'updated': int(datetime.timestamp(datetime.utcnow()))
-                }
-            }
-        }
+    def _authorize(self, email):
+        auth = self.auth.get_user(email)
+        if auth == {}:
+            return False
+        else:
+            return auth['uuid']
+
+    def _get_user(self, key, value):
+        return self.data_source.get_user(value, key)
 
 
 class UserActivity(APIBase):

@@ -1,12 +1,94 @@
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.json_util import loads, dumps
+import uuid
+from datetime import datetime
 import logging
 
 #from celery import Celery
 #queue = Celery()
+COLLECTION_AUTH = 'authorizations'
 COLLECTION_USERS = 'users'
 COLLECTION_ACTIVITIES = 'activities'
+
+
+class DataStructure:
+
+	@staticmethod
+	def get_empty_user():
+		return {
+			"nickname": "",
+			"uuid": str(uuid.uuid4()),
+			"motto": "",
+			"start_date": int(datetime.timestamp(datetime.utcnow())),
+			"activity": {
+				"weekly_summary": [
+					{
+						"year": 2021,
+						"week": 0,
+						"top_tags": [
+							{
+								"tag_name": "",
+								"pages_visits": 0
+							}
+						],
+						"pages_visits": 0
+					}
+				],
+				"updated": int(datetime.timestamp(datetime.utcnow()))
+			}
+		}
+
+
+class ExperimentMongo:
+	ROLES = ['participant', 'researcher']
+
+	def __init__(self, settings):
+		self.client = MongoClient(settings.MONGODB_URL)
+		self.db = self.client[settings.MONGODB_NAME]
+
+	def add_user(self, email):
+		experiment = self.db[COLLECTION_AUTH]
+		stako_users = self.db[COLLECTION_USERS]
+		if self.get_user(email) == {}:
+			a_user = self._get_empty_user()
+			a_user['email'] = email
+			result = experiment.insert_one(a_user)
+			saved = type(result.inserted_id) is ObjectId
+			logging.info('[Mongo:SaveExperimentUser] Saved? {}'.format(saved))
+			if saved:
+				empty_user = DataStructure.get_empty_user()
+				empty_user['uuid'] = a_user['uuid']
+				result2 = stako_users.insert_one(empty_user)
+				saved2 = type(result2.inserted_id) is ObjectId
+				if saved2:
+					return a_user['uuid']
+				else:
+					experiment.delete_one({"_id": result.inserted_id})
+		return None
+
+	def add_role(self, email, role):
+		pass
+
+	def remove_role(self, email, role):
+		pass
+
+	def get_user(self, email):
+		collection = self.db[COLLECTION_AUTH]
+		a_user = collection.find_one({'email': email}, {'_id': 0})
+		if a_user:
+			return loads(dumps(a_user))
+		else:
+			return {}
+
+	@staticmethod
+	def _get_empty_user():
+		return {
+			'uuid': str(uuid.uuid4()),
+			'email': '',
+			'roles': []
+		}
+
 
 class APIMongo:
 

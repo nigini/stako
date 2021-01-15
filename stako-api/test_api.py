@@ -4,6 +4,8 @@ import settings
 from requests import get, put
 from datetime import datetime
 from pymongo import MongoClient
+import mongo
+from mongo import ExperimentMongo
 import json
 
 from api import app, UserActivity
@@ -14,14 +16,19 @@ app.testing = True
 
 URL = 'http://127.0.0.1:5000/v1/'
 URL_ACTIVITY = URL + 'user/{}/activity/'
-
+TESTER_EMAIL = 'user@tester.com'
 
 class TestUserAPI(unittest.TestCase):
 	def setUp(self):
+		settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
 		client = MongoClient(settings.MONGODB_URL)
 		db = client[settings.MONGODB_NAME_TEST]
-		collection = db['users']
-		collection.drop()
+		users = db[mongo.COLLECTION_USERS]
+		users.drop()
+		experiment = db[mongo.COLLECTION_AUTH]
+		experiment.drop()
+		experiment_mongo = ExperimentMongo(settings)
+		self.tester_uuid = experiment_mongo.add_user(TESTER_EMAIL)
 
 	def test_users_base(self):
 		with app.test_client() as client:
@@ -29,6 +36,7 @@ class TestUserAPI(unittest.TestCase):
 			self.assertEqual(200, response.status_code)
 			self.assertEqual({}, response.get_json())
 			#CREATE NEW
+			# TODO: Only Researchers should be able to call POST!
 			response = client.post(URL + 'user/')
 			self.assertEqual(200, response.status_code)
 			self.assertTrue('uuid' in response.get_json())
@@ -38,10 +46,9 @@ class TestUserAPI(unittest.TestCase):
 			user = response.get_json()
 			self.assertEqual(uuid, user['uuid'])
 			self.assertTrue('nickname' in user)
-			self.assertTrue('email' in user)
+			self.assertFalse('email' in user)
 			self.assertTrue('motto' in user)
 			self.assertTrue('activity' in user)
-			self.assertTrue('communities' in user)
 			self.assertTrue('start_date' in user)
 
 	def test_users_get_by_any_key(self):
@@ -52,15 +59,12 @@ class TestUserAPI(unittest.TestCase):
 			self.assertTrue('uuid' in response.get_json())
 			user = response.get_json()
 			user['nickname'] = 'uTester'
-			user['email'] = 'user@tester.com'
 			user['motto'] = 'uTester will test it all!'
 			user.pop('activity', None)
-			user.pop('communities', None)
 			response = client.put(URL + 'user/{}/'.format(user['uuid']), data=json.dumps(user), content_type='application/json')
 			self.assertEqual(200, response.status_code)
 			#SEARCH
 			uuid = response.get_json()['uuid']
-			email = response.get_json()['email']
 			##MALFORMED REQUEST
 			response = client.get(URL + 'user/')
 			self.assertEqual(400, response.status_code)
@@ -80,13 +84,15 @@ class TestUserAPI(unittest.TestCase):
 			self.assertEqual(200, response.status_code)
 			user = response.get_json()
 			self.assertEqual(uuid, user['uuid'])
-			self.assertEqual(email, user['email'])
 			#BY_EMAIL
-			response = client.get(URL + 'user/?key={}&value={}'.format('email', email))
+			#NON_AUTHORIZED
+			response = client.get(URL + 'user/?key={}&value={}'.format('email', 'no_a_user@tester.com'))
+			self.assertEqual(403, response.status_code)
+			#AUTHORIZED
+			response = client.get(URL + 'user/?key={}&value={}'.format('email', TESTER_EMAIL))
 			self.assertEqual(200, response.status_code)
 			user = response.get_json()
-			self.assertEqual(uuid, user['uuid'])
-			self.assertEqual(email, user['email'])
+			self.assertEqual(self.tester_uuid, user['uuid'])
 
 	def test_users_update(self):
 		with app.test_client() as client:
@@ -98,7 +104,6 @@ class TestUserAPI(unittest.TestCase):
 			# CHANGING USER DATA
 			user = response.get_json()
 			user['nickname'] = 'uTester'
-			user['email'] = 'user@tester.com'
 			user['motto'] = 'uTester will test it all!'
 			user['uuid'] = 'SHOULD_NOT_BE_CHANGED'
 			user.pop('activity', None)
@@ -111,11 +116,9 @@ class TestUserAPI(unittest.TestCase):
 			user2 = response.get_json()
 			self.assertEqual(uuid, user2['uuid'])
 			self.assertEqual(user['nickname'], user2['nickname'])
-			self.assertEqual(user['email'], user2['email'])
 			self.assertEqual(user['motto'], user2['motto'])
 			self.assertEqual(user['start_date'], user2['start_date'])
 			self.assertTrue('activity' in user2)
-			self.assertTrue('communities' in user2)
 			# SHOULD NOT FIND USER
 			wrong_uuid = 'SHOULD_NOT_EXIST'
 			response = client.put(URL + 'user/{}/'.format(wrong_uuid), data=json.dumps(user2), content_type='application/json')
@@ -123,8 +126,10 @@ class TestUserAPI(unittest.TestCase):
 
 	def test_activity(self):
 		with app.test_client() as client:
-			an_activity = {'URL': 'https://stackoverflow.com/questions/20001229/',
-						   'TYPE': ACTIVITY_TYPE_SO_VISIT}
+			an_activity = {
+				'URL': 'https://stackoverflow.com/questions/20001229/',
+				'TYPE': ACTIVITY_TYPE_SO_VISIT
+			}
 			# NO USER
 			response = client.post(URL_ACTIVITY.format('SOME_BROKEN_UUID'), data=json.dumps(an_activity),
 									content_type='application/json')

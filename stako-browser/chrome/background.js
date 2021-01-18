@@ -29,10 +29,9 @@ chrome.runtime.onMessage.addListener(
 function saveTabActivity(details) {
     // 0 indicates the navigation happens in the tab content window
     if (details.frameId === 0) {
-        // create visit object containing tabUrl and timestamp
-        var visit = {
-            tabUrl: details.url,
-            timestamp: details.timeStamp,
+        let visit = {
+            TYPE: 'stackoverflow:visit',
+            URL: details.url
         };
         saveStakoActivity(visit);
     }

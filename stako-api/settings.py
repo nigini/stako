@@ -1,6 +1,6 @@
 QAW_DEBUG = True
 
-MONGODB_URL = 'mongodb://localhost:32768/'
+MONGODB_URL = 'mongodb://localhost:49153/'
 MONGODB_NAME = 'qa-teams'
 MONGODB_NAME_TEST = 'qa-teams-test'
 BROKER_URL = 'amqp://localhost:5672'

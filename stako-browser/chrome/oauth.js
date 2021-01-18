@@ -24,9 +24,8 @@ function matchStakoUser(userEmail) {
         if (!user) {
             searchStakoUser(userEmail).then( foundUser => {
                 if(!foundUser) {
-                    createStakoUser(userEmail).then( createdUser => {
-                        user = createdUser;
-                    })
+                    document.getElementById('nickname').innerText = "USER NOT REGISTERED!";
+                    document.getElementById('motto').innerText = "Sorry! Only pre-invited users allowed for now!";
                 } else {
                     chrome.storage.local.set({STAKO_USER: foundUser});
                     user = foundUser;
@@ -69,57 +68,4 @@ function searchStakoUser(userEmail) {
         .catch(error => {
             console.error(error);
         });
-}
-
-function createStakoUser(userEmail) {
-    console.log('creating stako user: ' + userEmail);
-    const request = new Request(STAKO_USER_URL, {method: 'POST', headers: {'Content-Type': 'application/json'}});
-    return fetch(request)
-        .then(response => {
-            if (response.status === 200) {
-                response.json()
-                    .then( stakoUser => {
-                        console.log('created stako user: ' + JSON.stringify(stakoUser));
-                        stakoUser.email = userEmail;
-                        updateStakoUser(stakoUser)
-                            .then( updated_user => {
-                                return updated_user;
-                            }
-                        );
-                    });
-            } else {
-                response.text()
-                    .then(text => {
-                        throw Error('Could not create new STAKO user: HTTP_STATUS ' + response.status + ' + ' + text)
-                    });
-            }
-        })
-        .then(response => {
-            console.debug(response);
-        })
-        .catch(error => {
-            console.error(error);
-        });
-}
-
-function updateStakoUser(user) {
-    console.log('updating stako user: ' + JSON.stringify(user));
-    const request_url = STAKO_USER_URL + user.uuid + '/';
-    const request = new Request(request_url,
-                            {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(user)});
-    return fetch(request)
-        .then(response => {
-            if (response.status === 200) {
-                chrome.storage.local.set({STAKO_USER: user});
-                console.log('Saved local stako user: ' + user.uuid);
-                return user;
-            } else {
-                throw new Error('Could not update STAKO user: ' + JSON.stringify(user));
-            }
-        })
-        .then(response => {
-            console.debug(response);
-        }).catch(error => {
-        console.error(error);
-    });
 }

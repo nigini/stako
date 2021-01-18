@@ -1,5 +1,7 @@
 window.addEventListener("load", init);
 
+//Testing whether the branches merged.
+
 //Hard coded value which determines which design intervention is used.
 var type = 2;
 

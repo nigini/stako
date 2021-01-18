@@ -168,3 +168,12 @@ form .buttons .submit:hover {background-color: #14892c;}
   overflow: auto;
   white-space: nowrap;
 }
+
+.carousel-item > p {
+  background-color: pink;
+}
+
+.weekly-tags {
+  display:flex;
+  flex-direction:row;
+}

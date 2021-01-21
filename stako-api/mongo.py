@@ -4,6 +4,7 @@ from bson.json_util import loads, dumps
 import uuid
 from datetime import datetime
 import logging
+from stackoverflow import Question
 
 #from celery import Celery
 #queue = Celery()
@@ -124,53 +125,28 @@ class APIMongo:
 
 	def get_activities(self, user_uuid):
 		collection = self.db[COLLECTION_ACTIVITIES]
-		a_user = collection.find_one({'uuid': user_uuid}, {'_id': 0})
+		a_user = collection.find_one({'UUID': user_uuid}, {'_id': 0})
 		if a_user:
 			return loads(dumps(a_user))
 		else:
 			return {}
 
 
-#	@queue.task
-	def save_questions(self, questions_list):
-		#TODO test format
-		collection = self.db['questions']
-		#TODO check updates before creating new entries (QUESTIONID and LASTUPDATE?)
-		collection.insert_many(questions_list)
+class UserSummary:
+	def __init__(self, settings):
+		self.client = MongoClient(settings.MONGODB_URL)
+		self.db = self.client[settings.MONGODB_NAME]
+		self.api = APIMongo(settings)
 
-	def get_questions(self, tag_list, size):
-		collection = self.db['questions']
-		# TODO Index collection by tags
-		result = collection.aggregate([
-			{'$match': {'tags': {'$all': tag_list}}},
-			{'$sample': {'size': size}}])
-		return list(result)
+	def update_user(self, uuid):
+		user = self.api.get_user(uuid)
+		if user:
+			last_updated = user['activity']['updated']
+			activities = self.db[COLLECTION_ACTIVITIES]
+			user_act = activities.find({'UUID': uuid}, {'_id': 0})
+			question_ids = Question.get_question_keys(user_act).keys()
+			questions_data = Question.get_questions(question_ids)
+			for q in questions_data:
+				# TODO
+				pass
 
-	def get_teams(self, tag_list):
-		collection = self.db['teams']
-		tag_list.sort()
-		# TODO Index collection by tags
-		result = collection.find({
-			'tags': {
-				'$size': len(tag_list),
-				'$all': tag_list
-			}}, {'_id': 0})
-		return loads(dumps(result))
-
-	def save_team(self, team):
-		collection = self.db['teams']
-		a_team = self._get_team(team['id'])
-		if a_team is not None:
-			a_team['last_updated'] = team['last_updated']
-		else:
-			a_team = team
-		collection.save(a_team)
-
-	def get_team(self, team_id):
-		collection = self.db['teams']
-		a_team = collection.find_one({'id': team_id}, {'_id': 0})
-		return loads(dumps(a_team))
-
-#	@queue.task
-	def save_message(self, message, channel='team_test'):
-		pass

@@ -113,7 +113,7 @@ class UserActivity(APIBase):
             logging.info('[API:PostActivity] REQUEST DATA: {}'.format(request_data))
             valid_data = self.validate_activity_data(request_data)
             if valid_data:
-                new_activity = self.get_empty_activity()
+                new_activity = DataStructure.get_empty_activity()
                 new_activity['UUID'] = uuid
                 new_activity['URL'] = valid_data.pop('URL')
                 new_activity['TYPE'] = valid_data.pop('TYPE')
@@ -145,16 +145,6 @@ class UserActivity(APIBase):
                             return None
                     return activity
         return None
-
-    @staticmethod
-    def get_empty_activity():
-        return {
-            'UUID': '',
-            'URL': '',
-            'TYPE': '',
-            'TIMESTAMP': int(datetime.timestamp(datetime.utcnow())),
-            'DATA': {}
-        }
 
 
 class TeamList(APIBase):

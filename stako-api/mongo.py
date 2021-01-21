@@ -40,6 +40,16 @@ class DataStructure:
 			}
 		}
 
+	@staticmethod
+	def get_empty_activity():
+		return {
+			'UUID': '',
+			'URL': '',
+			'TYPE': '',
+			'TIMESTAMP': int(datetime.timestamp(datetime.utcnow())),
+			'DATA': {}
+		}
+
 
 class ExperimentMongo:
 	ROLES = ['participant', 'researcher']

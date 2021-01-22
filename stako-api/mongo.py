@@ -4,51 +4,15 @@ from bson.json_util import loads, dumps
 import uuid
 from datetime import datetime
 import logging
+import copy
 from stackoverflow import Question
+from data import StakoUser
 
 #from celery import Celery
 #queue = Celery()
 COLLECTION_AUTH = 'authorizations'
 COLLECTION_USERS = 'users'
 COLLECTION_ACTIVITIES = 'activities'
-
-
-class DataStructure:
-
-	@staticmethod
-	def get_empty_user():
-		return {
-			"nickname": "",
-			"uuid": str(uuid.uuid4()),
-			"motto": "",
-			"start_date": int(datetime.timestamp(datetime.utcnow())),
-			"activity": {
-				"weekly_summary": [
-					{
-						"year": 2021,
-						"week": 0,
-						"top_tags": [
-							{
-								"tag_name": "",
-								"pages_visits": 0
-							}
-						],
-						"pages_visits": 0
-					}
-				],
-				"updated": int(datetime.timestamp(datetime.utcnow()))
-			}
-		}
-
-	@staticmethod
-	def get_empty_activity():
-		return {
-			'UUID': '',
-			'URL': '',
-			'TYPE': '',
-			'TIMESTAMP': int(datetime.timestamp(datetime.utcnow())),
-			'DATA': {}
-		}
 
 
 class ExperimentMongo:
@@ -68,7 +32,7 @@ class ExperimentMongo:
 			saved = type(result.inserted_id) is ObjectId
 			logging.info('[Mongo:SaveExperimentUser] Saved? {}'.format(saved))
 			if saved:
-				empty_user = DataStructure.get_empty_user()
+				empty_user = StakoUser.get_empty_user()
 				empty_user['uuid'] = a_user['uuid']
 				result2 = stako_users.insert_one(empty_user)
 				saved2 = type(result2.inserted_id) is ObjectId
@@ -144,19 +108,33 @@ class APIMongo:
 
 class UserSummary:
 	def __init__(self, settings):
-		self.client = MongoClient(settings.MONGODB_URL)
-		self.db = self.client[settings.MONGODB_NAME]
+		client = MongoClient(settings.MONGODB_URL)
+		db = client[settings.MONGODB_NAME]
+		self.db_activities = db[COLLECTION_ACTIVITIES]
 		self.api = APIMongo(settings)
 
 	def update_user(self, uuid):
 		user = self.api.get_user(uuid)
 		if user:
-			last_updated = user['activity']['updated']
-			activities = self.db[COLLECTION_ACTIVITIES]
-			user_act = activities.find({'UUID': uuid}, {'_id': 0})
-			question_ids = Question.get_question_keys(user_act).keys()
-			questions_data = Question.get_questions(question_ids)
-			for q in questions_data:
-				# TODO
-				pass
-
+			last_updated = user['activity']['weekly_summary']
+			user_act = self.db_activities.find({'UUID': uuid}, {'_id': 0})
+			act_questions_ids = Question.get_visits_questions_keys(user_act)
+			questions_data = Question.get_questions(act_questions_ids.keys())
+			for question_id, activity in act_questions_ids.items():
+				isotime = datetime.fromtimestamp(activity['TIMESTAMP']).isocalendar()
+				year = str(isotime[0])
+				week = str(isotime[1])
+				empty_summary = StakoUser.get_empty_weekly_summary(year, week)
+				if not last_updated.get(year, None):
+					last_updated[year] = {}
+				if not last_updated[year].get(week, None):
+					last_updated[year][week] = copy.deepcopy(empty_summary[year][week])
+					last_updated[year][week]['top_tags'].pop('top_tag', None)
+				for tag in questions_data[question_id]['tags']:
+					if tag not in last_updated[year][week]['top_tags'].keys():
+						last_updated[year][week]['top_tags'][tag] = \
+							copy.deepcopy(empty_summary[year][week]['top_tags']['top_tag'])
+					last_updated[year][week]['top_tags'][tag]['pages_visited'] += 1
+				last_updated[year][week]['pages_visited'] += 1
+			return self.api.save_user(user)
+		return False

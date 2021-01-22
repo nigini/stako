@@ -3,7 +3,8 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 from datetime import datetime
 import logging
-from mongo import APIMongo, ExperimentMongo, DataStructure
+from mongo import APIMongo, ExperimentMongo
+from data import StakoUser, StakoActivity
 from random import random
 from urllib.parse import urlparse
 
@@ -75,7 +76,7 @@ class NewUser(APIBase):
 
 
     def post(self):
-        new_user = DataStructure.get_empty_user()
+        new_user = StakoUser.get_empty_user()
         if self.data_source.save_user(new_user):
             logging.info('[API:PostUser] UUID {}'.format(new_user['uuid']))
             return {'uuid': new_user['uuid']}
@@ -96,15 +97,6 @@ class NewUser(APIBase):
 
 
 class UserActivity(APIBase):
-    ACTIVITY_TYPE_SO_VISIT = 'stackoverflow:visit'
-    ACTIVITY_TYPE_SO_MOUSE = 'stackoverflow:mouse'
-    ACTIVITY_TYPE_SO_CLICK = 'stackoverflow:click'
-
-    ACTIVITY_TYPES = {}
-    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_VISIT] = []
-    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_MOUSE] = ['ELEMENT', 'DURATION']
-    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_CLICK] = ['ELEMENT']
-
 
     def post(self, uuid):
         user = self.data_source.get_user(uuid)
@@ -113,7 +105,7 @@ class UserActivity(APIBase):
             logging.info('[API:PostActivity] REQUEST DATA: {}'.format(request_data))
             valid_data = self.validate_activity_data(request_data)
             if valid_data:
-                new_activity = DataStructure.get_empty_activity()
+                new_activity = StakoActivity.get_empty_activity()
                 new_activity['UUID'] = uuid
                 new_activity['URL'] = valid_data.pop('URL')
                 new_activity['TYPE'] = valid_data.pop('TYPE')
@@ -136,57 +128,15 @@ class UserActivity(APIBase):
         if activity_type and url:
             valid_url = urlparse(url)
             if url and all([valid_url.scheme, valid_url.netloc, valid_url.path]):
-                if activity_type in self.ACTIVITY_TYPES:
+                if activity_type in StakoActivity.ACTIVITY_TYPES:
                     activity = {'URL': url, 'TYPE': activity_type}
-                    for entry in self.ACTIVITY_TYPES[activity_type]:
+                    for entry in StakoActivity.ACTIVITY_TYPES[activity_type]:
                         try:
                             activity[entry] = request_data.pop(entry)
                         except KeyError:
                             return None
                     return activity
         return None
-
-
-class TeamList(APIBase):
-    def get(self, tags):
-        logging.info('[API:TeamList] Tags {}'.format(tags))
-        teams = self.data_source.get_teams(self.get_tag_list(tags))
-        return teams
-
-
-class TeamByID(APIBase):
-    def get(self, id):
-        logging.info('[API:GetTeam] ID {}'.format(id))
-        team = self.data_source.get_team(id)
-        if team is None:
-            return {}
-        return team
-
-
-class NewTeam(APIBase):
-    def post(self):
-        # TODO Check tags existence
-        tags = request.form.get('tags')
-        name = request.form.get('name')
-        # TODO Add current user as member
-        logging.info('[API:PostTeam] Team {}: {}'.format(name, tags))
-        team = self.get_empty_team()
-        team['tags'] = self.get_tag_list(tags)
-        team['name'] = name
-        self.data_source.save_team(team)
-
-    @staticmethod
-    def get_empty_team():
-        return {
-            'name': '',
-            'id': str(random())[2:],
-            'tags': [],
-            'participants': [],
-            'facts': {
-                'num_posts': 0,
-            },
-            'last_updated': int(datetime.timestamp(datetime.utcnow())),
-        }
 
 
 logging.basicConfig(level=logging.INFO)
@@ -197,9 +147,6 @@ prefix = '/v1'
 api.add_resource(User, '{}/user/<uuid>/'.format(prefix))
 api.add_resource(NewUser, '{}/user/'.format(prefix))
 api.add_resource(UserActivity, '{}/user/<uuid>/activity/'.format(prefix))
-api.add_resource(TeamList, '{}/teams/<tags>/'.format(prefix))
-api.add_resource(TeamByID, '{}/team/<id>/'.format(prefix))
-api.add_resource(NewTeam, '{}/team/'.format(prefix))
 
 if __name__ == '__main__':
     app.run(debug=settings.DEBUG)

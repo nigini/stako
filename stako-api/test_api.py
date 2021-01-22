@@ -6,11 +6,12 @@ from datetime import datetime
 from pymongo import MongoClient
 import mongo
 from mongo import ExperimentMongo
+from data import StakoActivity
 import json
 
-from api import app, UserActivity
-ACTIVITY_TYPE_SO_VISIT = UserActivity.ACTIVITY_TYPE_SO_VISIT
-ACTIVITY_TYPE_SO_CLICK = UserActivity.ACTIVITY_TYPE_SO_CLICK
+from api import app
+ACTIVITY_TYPE_SO_VISIT = StakoActivity.ACTIVITY_TYPE_SO_VISIT
+ACTIVITY_TYPE_SO_CLICK = StakoActivity.ACTIVITY_TYPE_SO_CLICK
 
 app.testing = True
 
@@ -180,31 +181,3 @@ class TestUserAPI(unittest.TestCase):
 			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(another_activity),
 								   content_type='application/json')
 			self.assertEqual(200, response.status_code)
-
-
-
-class Teams:#TestTeamsAPI(unittest.TestCase):
-
-	def setUp(self):
-		client = MongoClient(settings.MONGODB_URL)
-		db = client[settings.MONGODB_NAME_TEST]
-		collection = db['teams']
-		collection.drop()
-
-	def test_teams(self):
-		with app.test_client() as client:
-			response = client.get(URL + 'teams/test1;test2/')
-			self.assertEqual(200, response.status_code)
-			self.assertEqual({}, response.get_json())
-
-			response = client.put(URL + 'teams/test1;test2/')
-			self.assertEqual(200, response.status_code)
-			response = client.get(URL + 'teams/test1;test2/')
-			self.assertEqual(200, response.status_code)
-			team = response.get_json()
-			print(team)
-			self.assertEqual('test1', team['tags'][0])
-			self.assertEqual('test2', team['tags'][1])
-			self.assertEqual(0, len(team['participants']))
-			self.assertEqual(0, team['facts']['num_posts'])
-			self.assertGreaterEqual(int(datetime.timestamp(datetime.utcnow())), team['last_updated'])

@@ -40,6 +40,7 @@ function matchStakoUser(userEmail) {
                 document.getElementById('motto').innerText = user.motto;
             }
         }
+        console.log(user);
     });
 }
 

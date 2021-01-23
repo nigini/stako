@@ -1,22 +1,46 @@
 {
-  "nickname": "",
-  "uuid": "str(uuid.uuid4())",
-  "moto": "",
-  "start_date": "int(datetime.timestamp(datetime.utcnow()))",
+  "nickname": "TEST USER",
+  "uuid": "4500b1d3-c1e3-4e4d-8c67-fe6e9c1bb328",
+  "motto": "Some day I'll be a real user!",
+  "start_date": 1611371627,
   "activity": {
-    "weekly_summary": [
-      {
-        "year": 2021,
-        "week": 0,
-        "top_tags": [
-          {
-            "tag_name": "",
-            "pages_visits": 0
-          }
-        ],
-        "pages_visits": 0
+    "weekly_summary": {
+      "1970": {
+        "1": {
+          "top_tags": {
+            "top_tag": {
+              "pages_visited": 0
+            }
+          },
+          "pages_visited": 0
+        }
+      },
+      "2021": {
+        "3": {
+          "top_tags": {
+            "python": {
+              "pages_visited": 2
+            },
+            "python-3.x": {
+              "pages_visited": 1
+            },
+            "list": {
+              "pages_visited": 2
+            },
+            "dictionary": {
+              "pages_visited": 2
+            },
+            "python-2.x": {
+              "pages_visited": 1
+            },
+            "iteration": {
+              "pages_visited": 1
+            }
+          },
+          "pages_visited": 2
+        }
       }
-    ],
-    "updated": "int(datetime.timestamp(datetime.utcnow()))"
+    },
+    "updated": 1611371627
   }
 }

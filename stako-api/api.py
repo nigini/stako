@@ -1,11 +1,9 @@
 import settings
 from flask import Flask, request
 from flask_restful import Resource, Api
-from datetime import datetime
 import logging
 from mongo import APIMongo, ExperimentMongo
 from data import StakoUser, StakoActivity
-from random import random
 from urllib.parse import urlparse
 
 
@@ -149,4 +147,4 @@ api.add_resource(NewUser, '{}/user/'.format(prefix))
 api.add_resource(UserActivity, '{}/user/<uuid>/activity/'.format(prefix))
 
 if __name__ == '__main__':
-    app.run(debug=settings.DEBUG)
+    app.run(debug=settings.STAKO_DEBUG)

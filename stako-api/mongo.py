@@ -112,14 +112,17 @@ class UserSummary:
 		db = client[settings.MONGODB_NAME]
 		self.db_activities = db[COLLECTION_ACTIVITIES]
 		self.api = APIMongo(settings)
+		self.so_questions = Question(settings.STAKO_TEST)
 
-	def update_user(self, uuid):
+	def update_user(self, uuid, reset=False, act_newer_then_gmt_timestamp=None):
 		user = self.api.get_user(uuid)
 		if user:
+			user_act = self._get_user_activities(uuid, act_newer_then_gmt_timestamp)
+			if reset:
+				user['activity']['weekly_summary'] = StakoUser.get_empty_weekly_summary()
 			last_updated = user['activity']['weekly_summary']
-			user_act = self.db_activities.find({'UUID': uuid}, {'_id': 0})
-			act_questions_ids = Question.get_visits_questions_keys(user_act)
-			questions_data = Question.get_questions(act_questions_ids.keys())
+			act_questions_ids = self.so_questions.get_visits_questions_keys(user_act)
+			questions_data = self.so_questions.get_questions(act_questions_ids.keys())
 			for question_id, activity in act_questions_ids.items():
 				isotime = datetime.fromtimestamp(activity['TIMESTAMP']).isocalendar()
 				year = str(isotime[0])
@@ -138,3 +141,9 @@ class UserSummary:
 				last_updated[year][week]['pages_visited'] += 1
 			return self.api.save_user(user)
 		return False
+
+	def _get_user_activities(self, uuid, act_newer_then_gmt_timestamp):
+		search_obj = {'UUID': uuid}
+		if act_newer_then_gmt_timestamp:
+			search_obj['TIMESTAMP'] = {'$gt': int(act_newer_then_gmt_timestamp)}
+		return self.db_activities.find(search_obj, {'_id': 0})

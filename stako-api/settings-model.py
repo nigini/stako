@@ -1,3 +1,6 @@
+STAKO_TEST = False
+STAKO_DEBUG = False
+
 MONGODB_URL = 'mongodb://localhost:27017/'
 MONGODB_NAME = 'qa-teams'
 MONGODB_NAME_TEST = 'qa-teams-test'

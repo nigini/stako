@@ -7,6 +7,7 @@ from mongo import ExperimentMongo, APIMongo
 from data import StakoActivity
 from stackoverflow import Question
 
+# This data matches the MOCK DATA in the test_stakoverflow.json file
 TESTER_EMAIL = 'user@tester.com'
 TESTER_ACT1 = 'https://stackoverflow.com/questions/41051434/how-to-untrack-files-git-and-git-gui'
 TESTER_ACT1_TAGS = ['git', 'git-gui']
@@ -19,6 +20,7 @@ TESTER_ACT3_TAGS = ['python', 'list', 'dictionary', 'iteration']
 class TestStackOverflow(unittest.TestCase):
 
 	def setUp(self):
+		settings.STAKO_TEST = True
 		settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
 		client = MongoClient(settings.MONGODB_URL)
 		db = client[settings.MONGODB_NAME_TEST]
@@ -33,8 +35,11 @@ class TestStackOverflow(unittest.TestCase):
 		self.api = APIMongo(settings)
 
 	def test_get_question(self):
+		# OBS: This test might fail as this is testing against realtime data retrieval from StackOverflow
+		# You will need to update the test configuration with data from here:
+		# https://api.stackexchange.com/2.2/questions/41051434;16819222?site=stackoverflow
 		q_ids = ['41051434', '16819222']
-		so_questions = Question.get_questions(q_ids)
+		so_questions = Question().get_questions(q_ids)
 		self.assertEqual(2, len(so_questions))
 		for key in so_questions.keys():
 			self.assertTrue(key in q_ids)
@@ -43,6 +48,20 @@ class TestStackOverflow(unittest.TestCase):
 		for tag in so_questions[q_ids[1]]['tags']:
 			self.assertTrue(tag in TESTER_ACT2_TAGS)
 
+	def test_get_question_testing(self):
+		# OBS: This test turns on (i.e., Question(True)) the StackOverflow MOCK DATA.
+		# Check file test_stackoverflow.json and make sure it reflects this test's configuration
+		q_ids = ['41051434', '16819222', '65474737']
+		so_questions = Question(True).get_questions(q_ids)
+		self.assertEqual(3, len(so_questions))
+		for key in so_questions.keys():
+			self.assertTrue(key in q_ids)
+		for tag in so_questions[q_ids[0]]['tags']:
+			self.assertTrue(tag in TESTER_ACT1_TAGS)
+		for tag in so_questions[q_ids[1]]['tags']:
+			self.assertTrue(tag in TESTER_ACT2_TAGS)
+		for tag in so_questions[q_ids[2]]['tags']:
+			self.assertTrue(tag in TESTER_ACT3_TAGS)
 
 	def test_get_visits(self):
 		user_act = self.activities.find_one({'UUID': self.TESTER_UUID}, {'_id': 0})

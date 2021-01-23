@@ -64,39 +64,39 @@ class TestStackOverflow(unittest.TestCase):
 			self.assertTrue(tag in TESTER_ACT3_TAGS)
 
 	def test_get_visits(self):
-		user_act = self.activities.find_one({'UUID': self.TESTER_UUID}, {'_id': 0})
+		user_act = self.activities.find_one({'uuid': self.TESTER_UUID}, {'_id': 0})
 		self.assertIsNone(user_act)
 
 		test_activity = StakoActivity.get_empty_activity()
-		test_activity['UUID'] = self.TESTER_UUID
-		test_activity['URL'] = TESTER_ACT1
-		test_activity['TYPE'] = StakoActivity.ACTIVITY_TYPE_SO_VISIT
+		test_activity['uuid'] = self.TESTER_UUID
+		test_activity['url'] = TESTER_ACT1
+		test_activity['type'] = StakoActivity.ACTIVITY_TYPE_SO_VISIT
 		saved = self.api.save_activity(test_activity)
 		self.assertTrue(saved)
-		user_act = self.activities.find_one({'UUID': self.TESTER_UUID}, {'_id': 0})
-		self.assertEqual(TESTER_ACT1, user_act['URL'])
+		user_act = self.activities.find_one({'uuid': self.TESTER_UUID}, {'_id': 0})
+		self.assertEqual(TESTER_ACT1, user_act['url'])
 
-		user_acts = self.activities.find({'UUID': self.TESTER_UUID}, {'_id': 0})
+		user_acts = self.activities.find({'uuid': self.TESTER_UUID}, {'_id': 0})
 		response = list(Question.get_visits_questions_keys(user_acts).keys())
 		self.assertEqual(1, len(response))
 		self.assertEqual('41051434', response[0])
 
 		test_activity = StakoActivity.get_empty_activity()
-		test_activity['UUID'] = self.TESTER_UUID
-		test_activity['URL'] = TESTER_ACT2
-		test_activity['TYPE'] = StakoActivity.ACTIVITY_TYPE_SO_VISIT
+		test_activity['uuid'] = self.TESTER_UUID
+		test_activity['url'] = TESTER_ACT2
+		test_activity['type'] = StakoActivity.ACTIVITY_TYPE_SO_VISIT
 		saved = self.api.save_activity(test_activity)
 		self.assertTrue(saved)
 
 		# SHOULD NOT BE INCLUDED AS THIS IS A CLICK NOT A VISIT
 		test_activity = StakoActivity.get_empty_activity()
-		test_activity['UUID'] = self.TESTER_UUID
-		test_activity['URL'] = TESTER_ACT3
-		test_activity['TYPE'] = StakoActivity.ACTIVITY_TYPE_SO_CLICK
+		test_activity['uuid'] = self.TESTER_UUID
+		test_activity['url'] = TESTER_ACT3
+		test_activity['type'] = StakoActivity.ACTIVITY_TYPE_SO_CLICK
 		saved = self.api.save_activity(test_activity)
 		self.assertTrue(saved)
 
-		user_acts = self.activities.find({'UUID': self.TESTER_UUID}, {'_id': 0})
+		user_acts = self.activities.find({'uuid': self.TESTER_UUID}, {'_id': 0})
 		response = list(Question.get_visits_questions_keys(user_acts).keys())
 		self.assertEqual(2, len(response))
 		self.assertEqual('41051434', response[0])

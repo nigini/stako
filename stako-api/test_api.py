@@ -131,8 +131,8 @@ class TestUserAPI(unittest.TestCase):
 		with app.test_client() as client:
 			# TODO: Test for all supported activity types!
 			an_activity = {
-				'URL': 'https://stackoverflow.com/questions/20001229/',
-				'TYPE': ACTIVITY_TYPE_SO_VISIT
+				'url': 'https://stackoverflow.com/questions/20001229/',
+				'type': ACTIVITY_TYPE_SO_VISIT
 			}
 			# NO USER
 			response = client.post(URL_ACTIVITY.format('SOME_BROKEN_UUID'), data=json.dumps(an_activity),
@@ -144,9 +144,9 @@ class TestUserAPI(unittest.TestCase):
 									content_type='application/json')
 			self.assertEqual(200, response.status_code)
 			saved_activity = response.get_json()
-			self.assertEqual(self.tester_uuid, saved_activity['UUID'])
-			self.assertEqual(an_activity['URL'], saved_activity['URL'])
-			self.assertEqual(ACTIVITY_TYPE_SO_VISIT, saved_activity['TYPE'])
+			self.assertEqual(self.tester_uuid, saved_activity['uuid'])
+			self.assertEqual(an_activity['url'], saved_activity['url'])
+			self.assertEqual(ACTIVITY_TYPE_SO_VISIT, saved_activity['type'])
 
 			# NO URL or TYPE
 			a_bad_activity = {}
@@ -154,30 +154,30 @@ class TestUserAPI(unittest.TestCase):
 									content_type='application/json')
 			self.assertEqual(400, response.status_code)
 			# BAD URL
-			a_bad_activity = {'URL': 'stackoverflow.com'}
+			a_bad_activity = {'url': 'stackoverflow.com'}
 			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(a_bad_activity),
 									content_type='application/json')
 			self.assertEqual(400, response.status_code)
 			# MISSING ACTIVITY "TYPE"
 			a_bad_activity = an_activity.copy()
-			a_bad_activity.pop('TYPE', None)
+			a_bad_activity.pop('type', None)
 			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(a_bad_activity),
 								   content_type='application/json')
 			self.assertEqual(400, response.status_code)
 			# NON-EXISTING ACTIVITY TYPE
-			a_bad_activity['TYPE'] = 'NOT_VALID'
+			a_bad_activity['type'] = 'NOT_VALID'
 			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(a_bad_activity),
 								   content_type='application/json')
 			self.assertEqual(400, response.status_code)
 
 			# MISSING DATA FOR VALID TYPE
 			another_activity = an_activity.copy()
-			another_activity['TYPE'] = ACTIVITY_TYPE_SO_CLICK
+			another_activity['type'] = ACTIVITY_TYPE_SO_CLICK
 			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(another_activity),
 								   content_type='application/json')
 			self.assertEqual(400, response.status_code)
 			# FIXING FOR click TYPE
-			another_activity['ELEMENT'] = 'USER:1234'
+			another_activity['element'] = 'USER:1234'
 			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(another_activity),
 								   content_type='application/json')
 			self.assertEqual(200, response.status_code)

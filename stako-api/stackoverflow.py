@@ -22,8 +22,8 @@ class Question:
     def get_visits_questions_keys(user_activities):
         questions = {}
         for act in user_activities:
-            if act['TYPE'] == StakoActivity.ACTIVITY_TYPE_SO_VISIT:
-                url_s = act['URL'].split('/')
+            if act['type'] == StakoActivity.ACTIVITY_TYPE_SO_VISIT:
+                url_s = act['url'].split('/')
                 if url_s[2].lower() == 'stackoverflow.com' and url_s[3].lower() == 'questions' and url_s[4].isdigit():
                     questions[url_s[4]] = act
         return questions

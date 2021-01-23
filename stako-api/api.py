@@ -104,10 +104,10 @@ class UserActivity(APIBase):
             valid_data = self.validate_activity_data(request_data)
             if valid_data:
                 new_activity = StakoActivity.get_empty_activity()
-                new_activity['UUID'] = uuid
-                new_activity['URL'] = valid_data.pop('URL')
-                new_activity['TYPE'] = valid_data.pop('TYPE')
-                new_activity['DATA'] = valid_data
+                new_activity['uuid'] = uuid
+                new_activity['url'] = valid_data.pop('url')
+                new_activity['type'] = valid_data.pop('type')
+                new_activity['data'] = valid_data
                 result = self.data_source.save_activity(new_activity)
                 if result:
                     logging.info('[API:PostActivity] Activity {}'.format(new_activity))
@@ -121,13 +121,13 @@ class UserActivity(APIBase):
             return {'MESSAGE': '404: User {} not found!'.format(uuid)}, 404
 
     def validate_activity_data(self, request_data):
-        activity_type = request_data.pop('TYPE', None)
-        url = request_data.pop('URL', None)
+        activity_type = request_data.pop('type', None)
+        url = request_data.pop('url', None)
         if activity_type and url:
             valid_url = urlparse(url)
             if url and all([valid_url.scheme, valid_url.netloc, valid_url.path]):
                 if activity_type in StakoActivity.ACTIVITY_TYPES:
-                    activity = {'URL': url, 'TYPE': activity_type}
+                    activity = {'url': url, 'type': activity_type}
                     for entry in StakoActivity.ACTIVITY_TYPES[activity_type]:
                         try:
                             activity[entry] = request_data.pop(entry)

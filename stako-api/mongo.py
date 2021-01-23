@@ -99,7 +99,7 @@ class APIMongo:
 
 	def get_activities(self, user_uuid):
 		collection = self.db[COLLECTION_ACTIVITIES]
-		a_user = collection.find_one({'UUID': user_uuid}, {'_id': 0})
+		a_user = collection.find_one({'uuid': user_uuid}, {'_id': 0})
 		if a_user:
 			return loads(dumps(a_user))
 		else:
@@ -120,11 +120,13 @@ class UserSummary:
 			user_act = self._get_user_activities(uuid, act_newer_then_gmt_timestamp)
 			if reset:
 				user['activity']['weekly_summary'] = StakoUser.get_empty_weekly_summary()
+			else:
+				user['activity']['updated'] = int(datetime.utcnow().timestamp())
 			last_updated = user['activity']['weekly_summary']
 			act_questions_ids = self.so_questions.get_visits_questions_keys(user_act)
 			questions_data = self.so_questions.get_questions(act_questions_ids.keys())
 			for question_id, activity in act_questions_ids.items():
-				isotime = datetime.fromtimestamp(activity['TIMESTAMP']).isocalendar()
+				isotime = datetime.fromtimestamp(activity['timestamp']).isocalendar()
 				year = str(isotime[0])
 				week = str(isotime[1])
 				empty_summary = StakoUser.get_empty_weekly_summary(year, week)
@@ -143,7 +145,7 @@ class UserSummary:
 		return False
 
 	def _get_user_activities(self, uuid, act_newer_then_gmt_timestamp):
-		search_obj = {'UUID': uuid}
+		search_obj = {'uuid': uuid}
 		if act_newer_then_gmt_timestamp:
-			search_obj['TIMESTAMP'] = {'$gt': int(act_newer_then_gmt_timestamp)}
+			search_obj['timestamp'] = {'$gt': int(act_newer_then_gmt_timestamp)}
 		return self.db_activities.find(search_obj, {'_id': 0})

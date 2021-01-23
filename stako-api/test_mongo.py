@@ -69,27 +69,28 @@ class TestActivitySummary(TestStako):
 		self.TESTER_UUID = self.experiment.add_user(TESTER_EMAIL)
 		# SHOULD NOT BE INCLUDED IN SUMMARY AS IT IS A CLICK NOT A VISIT
 		test_activity = StakoActivity.get_empty_activity()
-		test_activity['UUID'] = self.TESTER_UUID
-		test_activity['URL'] = TESTER_ACT1
-		test_activity['TYPE'] = StakoActivity.ACTIVITY_TYPE_SO_CLICK
+		test_activity['uuid'] = self.TESTER_UUID
+		test_activity['url'] = TESTER_ACT1
+		test_activity['type'] = StakoActivity.ACTIVITY_TYPE_SO_CLICK
 		saved = self.api.save_activity(test_activity)
 		self.assertTrue(saved)
 		test_activity = StakoActivity.get_empty_activity()
-		test_activity['UUID'] = self.TESTER_UUID
-		test_activity['URL'] = TESTER_ACT2
-		test_activity['TYPE'] = StakoActivity.ACTIVITY_TYPE_SO_VISIT
-		test_activity['TIMESTAMP'] = int(self.today.timestamp())
+		test_activity['uuid'] = self.TESTER_UUID
+		test_activity['url'] = TESTER_ACT2
+		test_activity['type'] = StakoActivity.ACTIVITY_TYPE_SO_VISIT
+		test_activity['timestamp'] = int(self.today.timestamp())
 		saved = self.api.save_activity(test_activity)
 		self.assertTrue(saved)
 		test_activity = StakoActivity.get_empty_activity()
-		test_activity['UUID'] = self.TESTER_UUID
-		test_activity['URL'] = TESTER_ACT3
-		test_activity['TYPE'] = StakoActivity.ACTIVITY_TYPE_SO_VISIT
-		test_activity['TIMESTAMP'] = int(self.yesterday.timestamp())
+		test_activity['uuid'] = self.TESTER_UUID
+		test_activity['url'] = TESTER_ACT3
+		test_activity['type'] = StakoActivity.ACTIVITY_TYPE_SO_VISIT
+		test_activity['timestamp'] = int(self.yesterday.timestamp())
 		saved = self.api.save_activity(test_activity)
 		self.assertTrue(saved)
 
 	def test_visits_summary(self):
+		teststart_tm = int(self.today.timestamp())
 		today_iso_date = self.today.isocalendar()
 		today_year = str(today_iso_date[0])
 		today_week = str(today_iso_date[1])
@@ -107,6 +108,7 @@ class TestActivitySummary(TestStako):
 		updated = self.summary.update_user(self.TESTER_UUID, False, int(self.today0.timestamp()))
 		self.assertTrue(updated)
 		test_u = self.api.get_user(self.TESTER_UUID)
+		self.assertTrue(test_u['activity']['updated'] >= teststart_tm)
 		u_summary = test_u['activity']['weekly_summary']
 		self.assertEqual(2, len(u_summary))
 		self.assertTrue(today_year in u_summary.keys())
@@ -124,6 +126,7 @@ class TestActivitySummary(TestStako):
 		updated = self.summary.update_user(self.TESTER_UUID, False, int(self.yesterday0.timestamp()))
 		self.assertTrue(updated)
 		test_u = self.api.get_user(self.TESTER_UUID)
+		self.assertTrue(test_u['activity']['updated'] >= teststart_tm)
 		u_summary = test_u['activity']['weekly_summary']
 		self.assertEqual(2, len(u_summary))
 		self.assertTrue(today_year in u_summary.keys())
@@ -146,6 +149,7 @@ class TestActivitySummary(TestStako):
 		updated = self.summary.update_user(self.TESTER_UUID, True)
 		self.assertTrue(updated)
 		test_u = self.api.get_user(self.TESTER_UUID)
+		self.assertTrue(test_u['activity']['updated'] >= teststart_tm)
 		u_summary = test_u['activity']['weekly_summary']
 		self.assertEqual(2, len(u_summary))
 		self.assertTrue(today_year in u_summary.keys())

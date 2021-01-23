@@ -42,15 +42,15 @@ class StakoActivity:
 
     ACTIVITY_TYPES = {}
     ACTIVITY_TYPES[ACTIVITY_TYPE_SO_VISIT] = []
-    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_MOUSE] = ['ELEMENT', 'DURATION']
-    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_CLICK] = ['ELEMENT']
+    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_MOUSE] = ['element', 'duration']
+    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_CLICK] = ['element']
 
     @staticmethod
     def get_empty_activity():
         return {
-            'UUID': '',
-            'URL': '',
-            'TYPE': '',
-            'TIMESTAMP': int(datetime.timestamp(datetime.utcnow())),
-            'DATA': {}
+            'uuid': '',
+            'url': '',
+            'type': '',
+            'timestamp': int(datetime.timestamp(datetime.utcnow())),
+            'data': {}
         }

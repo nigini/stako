@@ -4,7 +4,7 @@ import json
 import logging
 from data import StakoActivity
 
-API_SO_QS = 'https://api.stackexchange.com/2.2/questions/{}?site=stackoverflow&key={}'
+API_SO_QS = 'https://api.stackexchange.com/2.2/questions/{}?site=stackoverflow&key={}&pagesize=100'
 
 
 class Question:

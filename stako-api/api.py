@@ -4,7 +4,7 @@ from flask import Flask, request
 from flask_restful import Resource, Api
 import logging
 from mongo import APIMongo, ExperimentMongo
-from data import StakoUser, StakoActivity
+from data import StakoUser, StakoActivity, StakoToken
 from urllib.parse import urlparse
 
 
@@ -13,6 +13,7 @@ class APIBase(Resource):
         if app.testing:
             settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
             self.testing = True
+        self.testing = False
         self.data_source = APIMongo(settings)
         self.auth = ExperimentMongo(settings)
 
@@ -33,9 +34,15 @@ class Auth(APIBase):
         if data and ('email' in data.keys()) and ('google_id' in data.keys()) and ('token' in data.keys()):
             valid = self._validate_token(data.get('email'), data.get('google_id'), data.get('token'))
             if valid:
-                pass
+                user = self.auth.get_user(data.get('email'))
+                if 'uuid' in user.keys():
+                    token = StakoToken.get_new_token()
+                    token['uuid'] = user['uuid']
+                    return token
+                else:
+                    return {'MESSAGE': 'Non Authorized: User with email {} is not a registered STAKO user!'}, 401
             else:
-                return {'MESSAGE': '401: Invalid OAUTH token for provided email!'}, 401
+                return {'MESSAGE': 'Non Authorized: Invalid OAUTH token for provided email!'}, 401
         else:
             return {'MESSAGE': 'Malformed auth request: need "email" and "token" params.'}, 400
 

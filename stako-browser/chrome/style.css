@@ -173,13 +173,17 @@ form .buttons .submit:hover {background-color: #14892c;}
 
 .carousel-item a, .carousel-item p {
   color: #ffffff;
-  margin: 2%;
+  margin: 2px;
 }
 
 .carousel-item a:hover {
   color: #f48024;
 }
 
+.tags-container {
+  display:flex;
+  justify-content:center;
+}
 
 .weekly-tags {
   display:flex;

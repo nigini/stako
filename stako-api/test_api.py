@@ -9,7 +9,7 @@ from mongo import ExperimentMongo
 from data import StakoActivity
 import json
 
-from api import app
+from api import app, Auth
 ACTIVITY_TYPE_SO_VISIT = StakoActivity.ACTIVITY_TYPE_SO_VISIT
 ACTIVITY_TYPE_SO_CLICK = StakoActivity.ACTIVITY_TYPE_SO_CLICK
 
@@ -19,7 +19,8 @@ URL = 'http://127.0.0.1:5000/v1/'
 URL_ACTIVITY = URL + 'user/{}/activity/'
 TESTER_EMAIL = 'user@tester.com'
 
-class TestUserAPI(unittest.TestCase):
+
+class TestAPI(unittest.TestCase):
 	def setUp(self):
 		settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
 		client = MongoClient(settings.MONGODB_URL)
@@ -33,6 +34,20 @@ class TestUserAPI(unittest.TestCase):
 		experiment_mongo = ExperimentMongo(settings)
 		self.tester_uuid = experiment_mongo.add_user(TESTER_EMAIL)
 
+
+class TestAuthAPI(TestAPI):
+	def test_auth(self):
+		with app.test_client() as client:
+			# NO EMAIL, NO GOOGLE_ID, NOR TOKEN
+			response = client.get(URL + 'auth/')
+			self.assertEqual(400, response.status_code)
+			# INVALID EMAIL, GOOGLE_ID, AND TOKEN
+			response = client.get(URL + 'auth/?email={}&google_id={}&token={}'.format('', '', ''))
+			self.assertEqual(401, response.status_code)
+			# TODO: VALID EMAIL, GOOGLE_ID, AND TOKEN
+
+
+class TestUserAPI(TestAPI):
 	def test_users_base(self):
 		with app.test_client() as client:
 			response = client.get(URL + 'user/1/')
@@ -127,6 +142,8 @@ class TestUserAPI(unittest.TestCase):
 			response = client.put(URL + 'user/{}/'.format(wrong_uuid), data=json.dumps(user2), content_type='application/json')
 			self.assertEqual(404, response.status_code)
 
+
+class TestActivityAPI(TestAPI):
 	def test_activity(self):
 		with app.test_client() as client:
 			# TODO: Test for all supported activity types!

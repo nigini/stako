@@ -1,4 +1,5 @@
 import settings
+import requests
 from flask import Flask, request
 from flask_restful import Resource, Api
 import logging
@@ -11,6 +12,7 @@ class APIBase(Resource):
     def __init__(self):
         if app.testing:
             settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
+            self.testing = True
         self.data_source = APIMongo(settings)
         self.auth = ExperimentMongo(settings)
 
@@ -19,6 +21,41 @@ class APIBase(Resource):
         tag_list = tags_string.split(';')
         tag_list.sort()
         return tag_list
+
+
+class Auth(APIBase):
+    GOOGLE_OAUTH_INFO = 'https://oauth2.googleapis.com/tokeninfo?access_token={}'
+    TESTER_EMAIL = 'user@tester.com'
+    TESTER_TOKEN = 'XPTO_1234567890'
+
+    def get(self):
+        data = request.args
+        if data and ('email' in data.keys()) and ('google_id' in data.keys()) and ('token' in data.keys()):
+            valid = self._validate_token(data.get('email'), data.get('google_id'), data.get('token'))
+            if valid:
+                pass
+            else:
+                return {'MESSAGE': '401: Invalid OAUTH token for provided email!'}, 401
+        else:
+            return {'MESSAGE': 'Malformed auth request: need "email" and "token" params.'}, 400
+
+    def _validate_token(self, email, google_id, oauth_token):
+        logging.info('[API:AUTHORIZE] EMAIL {}, GID {}, and TOKEN {}.'.format(email, google_id, oauth_token))
+        if self.testing:
+            return email == Auth.TESTER_EMAIL and oauth_token == Auth.TESTER_TOKEN
+        else:
+            r_url = Auth.GOOGLE_OAUTH_INFO.format(oauth_token)
+            response = requests.get(r_url)
+            if response.status_code == 200:
+                data = response.json()
+                logging.info('[API:AUTHORIZED?] {}'.format(data))
+                if 'error' not in data.keys():
+                    app = data['aud']
+                    user = data['sub']
+                    if app == settings.STAKO_OAUTH_ID and user == google_id:
+                        return True
+        return False
+
 
 
 class User(APIBase):
@@ -142,6 +179,7 @@ app = Flask(__name__)
 api = Api(app)
 
 prefix = '/v1'
+api.add_resource(Auth, '{}/auth/'.format(prefix))
 api.add_resource(User, '{}/user/<uuid>/'.format(prefix))
 api.add_resource(NewUser, '{}/user/'.format(prefix))
 api.add_resource(UserActivity, '{}/user/<uuid>/activity/'.format(prefix))

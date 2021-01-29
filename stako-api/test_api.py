@@ -1,8 +1,6 @@
 import unittest
 import settings
 
-from requests import get, put
-from datetime import datetime
 from pymongo import MongoClient
 import mongo
 from mongo import ExperimentMongo
@@ -13,8 +11,6 @@ from api import app, Auth
 ACTIVITY_TYPE_SO_VISIT = StakoActivity.ACTIVITY_TYPE_SO_VISIT
 ACTIVITY_TYPE_SO_CLICK = StakoActivity.ACTIVITY_TYPE_SO_CLICK
 
-app.testing = True
-
 URL = 'http://127.0.0.1:5000/v1/'
 URL_ACTIVITY = URL + 'user/{}/activity/'
 TESTER_EMAIL = 'user@tester.com'
@@ -22,6 +18,7 @@ TESTER_EMAIL = 'user@tester.com'
 
 class TestAPI(unittest.TestCase):
 	def setUp(self):
+		settings.STAKO_TEST = True
 		settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
 		client = MongoClient(settings.MONGODB_URL)
 		db = client[settings.MONGODB_NAME_TEST]
@@ -44,7 +41,18 @@ class TestAuthAPI(TestAPI):
 			# INVALID EMAIL, GOOGLE_ID, AND TOKEN
 			response = client.get(URL + 'auth/?email={}&google_id={}&token={}'.format('', '', ''))
 			self.assertEqual(401, response.status_code)
-			# TODO: VALID EMAIL, GOOGLE_ID, AND TOKEN
+			response = client.get(URL + 'auth/?email={}&google_id={}&token={}'.format(Auth.TESTER_EMAIL, '', ''))
+			self.assertEqual(200, response.status_code)
+			auth_token = response.get_json()
+			# TODO: CREATE VALID EMAIL, GOOGLE_ID, AND TOKEN
+
+			# TEST GET_USER
+			response = client.get(URL + 'user/{}/'.format(self.tester_uuid))
+			self.assertEqual(401, response.status_code)
+			header = {'Authorization': 'Bearer {}'.format(auth_token['access_token'])}
+			response = client.get(URL + 'user/{}/'.format(self.tester_uuid), headers=header)
+			self.assertEqual(200, response.status_code)
+			self.assertEqual(self.tester_uuid, response.get_json()['uuid'])
 
 
 class TestUserAPI(TestAPI):

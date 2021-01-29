@@ -1,27 +1,37 @@
 import settings
 import requests
-from flask import Flask, request
+from flask import Flask, request, jsonify
+import flask_restful
 from flask_restful import Resource, Api
 import logging
 from mongo import APIMongo, ExperimentMongo
 from data import StakoUser, StakoActivity, StakoToken
 from urllib.parse import urlparse
+from functools import wraps
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import exceptions as jwt_exceptions
+
+
+def authorize_user(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if 'uuid' in kwargs:
+            try:
+                verify_jwt_in_request()
+                if get_jwt_identity() == kwargs['uuid']:
+                    return func(*args, **kwargs)
+            except jwt_exceptions.NoAuthorizationError:
+                flask_restful.abort(401)
+        else:
+            flask_restful.abort(400)
+    return wrapper
 
 
 class APIBase(Resource):
+
     def __init__(self):
-        if app.testing:
-            settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
-            self.testing = True
-        self.testing = False
         self.data_source = APIMongo(settings)
         self.auth = ExperimentMongo(settings)
-
-    @staticmethod
-    def get_tag_list(tags_string):
-        tag_list = tags_string.split(';')
-        tag_list.sort()
-        return tag_list
 
 
 class Auth(APIBase):
@@ -36,9 +46,8 @@ class Auth(APIBase):
             if valid:
                 user = self.auth.get_user(data.get('email'))
                 if 'uuid' in user.keys():
-                    token = StakoToken.get_new_token()
-                    token['uuid'] = user['uuid']
-                    return token
+                    token = create_access_token(identity=user['uuid'])
+                    return {'uuid': user['uuid'], 'access_token': token}
                 else:
                     return {'MESSAGE': 'Non Authorized: User with email {} is not a registered STAKO user!'}, 401
             else:
@@ -48,8 +57,8 @@ class Auth(APIBase):
 
     def _validate_token(self, email, google_id, oauth_token):
         logging.info('[API:AUTHORIZE] EMAIL {}, GID {}, and TOKEN {}.'.format(email, google_id, oauth_token))
-        if self.testing:
-            return email == Auth.TESTER_EMAIL and oauth_token == Auth.TESTER_TOKEN
+        if settings.STAKO_TEST:
+            return email == Auth.TESTER_EMAIL
         else:
             r_url = Auth.GOOGLE_OAUTH_INFO.format(oauth_token)
             response = requests.get(r_url)
@@ -64,8 +73,9 @@ class Auth(APIBase):
         return False
 
 
-
 class User(APIBase):
+    method_decorators = [authorize_user]
+
     def get(self, uuid):
         logging.info('[API:GetUser] ID {}'.format(uuid))
         a_user = self.data_source.get_user(uuid)
@@ -115,7 +125,6 @@ class NewUser(APIBase):
                     return {'MESSAGE': 'Could not find a user matching search {}.'.format(search)}, 404
             return {'MESSAGE': 'Malformed search request: KEY not in [uuid, email].'}, 400
         return {'MESSAGE': 'Malformed search request: need [KEY:K,VALUE:V] params.'}, 400
-
 
     def post(self):
         new_user = StakoUser.get_empty_user()
@@ -188,9 +197,18 @@ class UserActivity(APIBase):
         return None
 
 
+#@app.route('/v1/protected', methods=['GET'])
+#@jwt_required
+#def protected():
+#    user = get_jwt_identity()
+#    return jsonify(logged=user), 200
+
 logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 api = Api(app)
+
+app.config['JWT_SECRET_KEY'] = settings.STAKO_JWT_SECRET
+jwt = JWTManager(app)
 
 prefix = '/v1'
 api.add_resource(Auth, '{}/auth/'.format(prefix))

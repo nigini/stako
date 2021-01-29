@@ -9,16 +9,16 @@ chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
         if(request.type == "stackoverflow:mouse") {
             var mouseOver = {
-                TYPE: request.type,
-                URL: request.url,
-                DURATION: request.time,
+                type: request.type,
+                url: request.url,
+                duration: request.time,
             };
             saveStakoActivity(mouseOver);
             sendResponse({testType: request.type, testURL: request.url, testTime: request.time});
         } else if(request.type == "stackoverflow:click") {
             var click = {
-                TYPE: request.type,
-                URL: request.url,
+                type: request.type,
+                url: request.url,
             };
             saveStakoActivity(click);
             sendResponse({testType: request.type, testURL: request.url});
@@ -30,8 +30,8 @@ function saveTabActivity(details) {
     // 0 indicates the navigation happens in the tab content window
     if (details.frameId === 0) {
         let visit = {
-            TYPE: 'stackoverflow:visit',
-            URL: details.url
+            type: 'stackoverflow:visit',
+            url: details.url
         };
         saveStakoActivity(visit);
     }

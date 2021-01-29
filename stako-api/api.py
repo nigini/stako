@@ -158,11 +158,18 @@ class UserActivity(APIBase):
                     new_activity.pop('_id', None)
                     return new_activity
                 else:
-                    return {'MESSAGE': '500: Could not add activity to user {}!'.format(uuid)}, 500
+                    msg = '500: Could not add activity to user {}!'.format(uuid)
+                    err = 500
             else:
-                return {'MESSAGE': '400: Malformed User Activity!'}, 400
+                msg = '400: Malformed User Activity!'
+                err = 400
         else:
-            return {'MESSAGE': '404: User {} not found!'.format(uuid)}, 404
+            msg = '404: User {} not found!'.format(uuid)
+            err = 404
+
+        logging.error('[API:PostActivity] ERROR: {}'.format(msg))
+        return {'MESSAGE': msg}, err
+
 
     def validate_activity_data(self, request_data):
         activity_type = request_data.pop('type', None)

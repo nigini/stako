@@ -6,6 +6,7 @@ from datetime import datetime
 import logging
 import copy
 from stackoverflow import Question
+import data
 from data import StakoUser
 
 #from celery import Celery
@@ -121,7 +122,7 @@ class UserSummary:
 			if reset:
 				user['activity']['weekly_summary'] = StakoUser.get_empty_weekly_summary()
 			else:
-				user['activity']['updated'] = int(datetime.utcnow().timestamp())
+				user['activity']['updated'] = data.get_utc_timestamp()
 			last_updated = user['activity']['weekly_summary']
 			act_questions_ids = self.so_questions.get_visits_questions_keys(user_act)
 			questions_data = self.so_questions.get_questions(act_questions_ids.keys())

@@ -20,6 +20,8 @@ def authorize_user(func):
                 verify_jwt_in_request()
                 if get_jwt_identity() == kwargs['uuid']:
                     return func(*args, **kwargs)
+                else:
+                    flask_restful.abort(403)
             except jwt_exceptions.NoAuthorizationError:
                 flask_restful.abort(401)
         else:
@@ -28,7 +30,6 @@ def authorize_user(func):
 
 
 class APIBase(Resource):
-
     def __init__(self):
         self.data_source = APIMongo(settings)
         self.auth = ExperimentMongo(settings)
@@ -37,7 +38,6 @@ class APIBase(Resource):
 class Auth(APIBase):
     GOOGLE_OAUTH_INFO = 'https://oauth2.googleapis.com/tokeninfo?access_token={}'
     TESTER_EMAIL = 'user@tester.com'
-    TESTER_TOKEN = 'XPTO_1234567890'
 
     def get(self):
         data = request.args
@@ -46,10 +46,12 @@ class Auth(APIBase):
             if valid:
                 user = self.auth.get_user(data.get('email'))
                 if 'uuid' in user.keys():
+                    # TODO: Should check for existing one first?
                     token = create_access_token(identity=user['uuid'])
                     return {'uuid': user['uuid'], 'access_token': token}
                 else:
-                    return {'MESSAGE': 'Non Authorized: User with email {} is not a registered STAKO user!'}, 401
+                    return {'MESSAGE': 'Non Authorized: User with email {} is not a registered STAKO user!'
+                            .format(data.get('email'))}, 401
             else:
                 return {'MESSAGE': 'Non Authorized: Invalid OAUTH token for provided email!'}, 401
         else:
@@ -84,9 +86,8 @@ class User(APIBase):
     def put(self, uuid):
         user = self.data_source.get_user(uuid)
         if user:
-            # TODO: Block/sort out non-json requests
             new_data = request.json
-            for key in ['nickname', 'email', 'motto']:
+            for key in ['nickname', 'motto']:
                 if key in new_data:
                     user[key] = new_data[key]
             if 'activity' in new_data:
@@ -103,51 +104,8 @@ class User(APIBase):
             return {'MESSAGE': '404: User {} not found!'.format(uuid)}, 404
 
 
-class NewUser(APIBase):
-    def get(self):
-        search = request.args
-        if search and ('key' in search.keys()) and ('value' in search.keys()):
-            key = search['key']
-            value = search['value']
-            if key == 'email':
-                email = value
-                uuid = self._authorize(email)
-                if uuid:
-                    key = 'uuid'
-                    value = uuid
-                else:
-                    return {'MESSAGE': 'The email "{}" is not associated to an authorized user.'.format(email)}, 403
-            if key == 'uuid':
-                user = self._get_user(key, value)
-                if user:
-                    return user
-                else:
-                    return {'MESSAGE': 'Could not find a user matching search {}.'.format(search)}, 404
-            return {'MESSAGE': 'Malformed search request: KEY not in [uuid, email].'}, 400
-        return {'MESSAGE': 'Malformed search request: need [KEY:K,VALUE:V] params.'}, 400
-
-    def post(self):
-        new_user = StakoUser.get_empty_user()
-        if self.data_source.save_user(new_user):
-            logging.info('[API:PostUser] UUID {}'.format(new_user['uuid']))
-            return {'uuid': new_user['uuid']}
-        else:
-            # TODO: Should return and ERROR?
-            logging.info('[API:PostUser] ERROR!')
-            return {}
-
-    def _authorize(self, email):
-        auth = self.auth.get_user(email)
-        if auth == {}:
-            return False
-        else:
-            return auth['uuid']
-
-    def _get_user(self, key, value):
-        return self.data_source.get_user(value, key)
-
-
 class UserActivity(APIBase):
+    method_decorators = [authorize_user]
 
     def post(self, uuid):
         user = self.data_source.get_user(uuid)
@@ -179,7 +137,6 @@ class UserActivity(APIBase):
         logging.error('[API:PostActivity] ERROR: {}'.format(msg))
         return {'MESSAGE': msg}, err
 
-
     def validate_activity_data(self, request_data):
         activity_type = request_data.pop('type', None)
         url = request_data.pop('url', None)
@@ -197,12 +154,6 @@ class UserActivity(APIBase):
         return None
 
 
-#@app.route('/v1/protected', methods=['GET'])
-#@jwt_required
-#def protected():
-#    user = get_jwt_identity()
-#    return jsonify(logged=user), 200
-
 logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 api = Api(app)
@@ -213,7 +164,6 @@ jwt = JWTManager(app)
 prefix = '/v1'
 api.add_resource(Auth, '{}/auth/'.format(prefix))
 api.add_resource(User, '{}/user/<uuid>/'.format(prefix))
-api.add_resource(NewUser, '{}/user/'.format(prefix))
 api.add_resource(UserActivity, '{}/user/<uuid>/activity/'.format(prefix))
 
 if __name__ == '__main__':

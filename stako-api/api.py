@@ -1,15 +1,16 @@
 import settings
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request
 import flask_restful
 from flask_restful import Resource, Api
 import logging
 from mongo import APIMongo, ExperimentMongo
-from data import StakoUser, StakoActivity, StakoToken
+from data import StakoActivity
 from urllib.parse import urlparse
 from functools import wraps
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, verify_jwt_in_request
-from flask_jwt_extended import exceptions as jwt_exceptions
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, verify_jwt_in_request, get_raw_jwt
+from flask_jwt_extended.exceptions import NoAuthorizationError
+from jwt.exceptions import ExpiredSignatureError
 
 
 def authorize_user(func):
@@ -22,7 +23,7 @@ def authorize_user(func):
                     return func(*args, **kwargs)
                 else:
                     flask_restful.abort(403)
-            except jwt_exceptions.NoAuthorizationError:
+            except (ExpiredSignatureError, NoAuthorizationError):
                 flask_restful.abort(401)
         else:
             flask_restful.abort(400)
@@ -159,6 +160,7 @@ app = Flask(__name__)
 api = Api(app)
 
 app.config['JWT_SECRET_KEY'] = settings.STAKO_JWT_SECRET
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = settings.STAKO_JWT_TOKEN_EXPIRES
 jwt = JWTManager(app)
 
 prefix = '/v1'

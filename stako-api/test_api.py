@@ -1,4 +1,5 @@
 import unittest
+import time
 import settings
 
 from pymongo import MongoClient
@@ -61,6 +62,23 @@ class TestAuthAPI(TestAPI):
 			# CATCH IMPERSONATION
 			response = client.get(URL + 'user/{}/'.format(self.some_other_user_uuid), headers=header)
 			self.assertEqual(403, response.status_code)
+
+	def test_auth_expiration(self):
+		app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 1
+		with app.test_client() as client:
+			print('TOKEN EXPIRATION TIME: {}'.format(app.config['JWT_ACCESS_TOKEN_EXPIRES']))
+			response = client.get(URL + 'auth/?email={}&google_id={}&token={}'.format(Auth.TESTER_EMAIL, '', ''))
+			self.assertEqual(200, response.status_code)
+			auth_token = response.get_json()
+			print('TOKEN: {}'.format(auth_token))
+			header = {'Authorization': 'Bearer {}'.format(auth_token['access_token'])}
+			response = client.get(URL + 'user/{}/'.format(self.tester_uuid), headers=header)
+			self.assertEqual(200, response.status_code)
+			self.assertEqual(self.tester_uuid, response.get_json()['uuid'])
+			time.sleep(2)
+			#TOKEN EXPIRED
+			response = client.get(URL + 'user/{}/'.format(self.tester_uuid), headers=header)
+			self.assertEqual(401, response.status_code)
 
 
 class TestUserAPI(TestAPI):

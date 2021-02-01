@@ -38,8 +38,8 @@ function loadCarosel() {
     var activityData = userData["activity"]["weekly_summary"]["2021"];
     nick.textContent = activityData.nickname;
     mot.textContent = activityData.moto;
+    //Dummy data for testing
     /*
-    Dummy data for testing
     activityData["4"] = {
       "pages_visited": 50,
       "top_tags" : {

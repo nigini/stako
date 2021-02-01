@@ -57,7 +57,19 @@ function insertDesign(banner) {
     var tags = document.querySelectorAll(".user-info");
     //Set used to prevent a single contributor from appearing multiple times in the crew.
     var contributors = new Set();
-    for(let tag of tags) {
+    for(let element of tags) {
+      var tag = element.cloneNode(true);
+      var image = element.querySelector(".user-gravatar32");
+      var reputation = element.querySelector(".user-details .-flair");
+      //Removes gray background
+      element.parentElement.classList.remove("owner");
+      if(image) {
+        image.classList.add("popup-hidden");
+      }
+      if(reputation) {
+        reputation.classList.remove("-flair");
+        reputation.classList.add("popup-hidden");
+      }
       var tagChildren = tag.children;
       var avatar = false;
       for(let child of tagChildren) {

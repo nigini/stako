@@ -5,8 +5,9 @@ import logging
 from pymongo import MongoClient
 import mongo
 from mongo import ExperimentMongo, APIMongo, UserSummary
+import data
 from data import StakoActivity
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 class TestStako(unittest.TestCase):
@@ -62,7 +63,7 @@ class TestActivitySummary(TestStako):
 
 	def setUp(self):
 		super(TestActivitySummary, self).setUp()
-		self.today = datetime.utcnow()
+		self.today = datetime.utcnow().replace(tzinfo=timezone.utc)
 		self.yesterday = self.today - timedelta(1)
 		self.today0 = self.today.replace(hour=0, minute=0, second=0, microsecond=0)
 		self.yesterday0 = self.today0 - timedelta(1)

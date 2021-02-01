@@ -1,7 +1,10 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
-from _pytest.mark import get_empty_parameterset_mark
+
+def get_utc_timestamp():
+    now = datetime.utcnow().replace(tzinfo=timezone.utc)
+    return int(now.timestamp())
 
 
 class StakoUser:
@@ -11,10 +14,10 @@ class StakoUser:
             "nickname": "",
             "uuid": str(uuid.uuid4()),
             "motto": "",
-            "start_date": int(datetime.timestamp(datetime.utcnow())),
+            "start_date": get_utc_timestamp(),
             "activity": {
                 "weekly_summary": StakoUser.get_empty_weekly_summary(),
-                "updated": int(datetime.timestamp(datetime.utcnow()))
+                "updated": get_utc_timestamp()
             }
         }
 
@@ -51,6 +54,18 @@ class StakoActivity:
             'uuid': '',
             'url': '',
             'type': '',
-            'timestamp': int(datetime.timestamp(datetime.utcnow())),
+            'timestamp': get_utc_timestamp(),
             'data': {}
+        }
+
+
+class StakoToken:
+    TEST_KEY = 'ABCD_1234567890'
+
+    @staticmethod
+    def get_new_token():
+        return {
+            'uuid': '',
+            'key': StakoToken.TEST_KEY,
+            'expiration': get_utc_timestamp() + (1*24*60*60) #Expires in one day!
         }

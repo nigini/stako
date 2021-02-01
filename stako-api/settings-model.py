@@ -1,5 +1,6 @@
 STAKO_TEST = False
 STAKO_DEBUG = False
+STAKO_OAUTH_ID = ''
 
 MONGODB_URL = 'mongodb://localhost:27017/'
 MONGODB_NAME = 'qa-teams'

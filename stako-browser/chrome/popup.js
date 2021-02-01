@@ -38,18 +38,30 @@ function loadCarosel() {
     var activityData = userData["activity"]["weekly_summary"]["2021"];
     nick.textContent = activityData.nickname;
     mot.textContent = activityData.moto;
+    /*
+    Dummy data for testing
+    activityData["4"] = {
+      "pages_visited": 50,
+      "top_tags" : {
+        "add": {"pages_visited" : 15},
+        "github" : {"pages_visited" : 3},
+        "jquery" : {"pages_visited" : 12},
+        "git" : {"pages_visited" : 3}
+      }
+    }
+    */
     var weeks = Object.keys(activityData);
     var active = true;
     for(let week of weeks) {
       var tags = Object.keys(activityData[week]["top_tags"]);
       var tagData = activityData[week]["top_tags"];
-      console.log(tagData);
       //Find the top two tags based on page visits.
-      var tag1;
-      var pageVisits1;
-      var tag2;
-      var pageVisits2;
+      var tag1 = null;
+      var pageVisits1 = null;
+      var tag2 = null;
+      var pageVisits2 = null;
       for(let tag of tags) {
+        console.log("tag1 " + tag1 + " " + pageVisits1 + " tag2 " + tag2 + " " + pageVisits2);
         var currVisits = tagData[tag]["pages_visited"];
         if(!tag1 && !pageVisits1) {
           tag1 = tag;
@@ -90,7 +102,6 @@ function addTagsToCarousel(carousel, first_tag_div, second_tag_div, active) {
 }
 
 function createActivityDiv(final_tag, final_pageVisits) {
-  console.log(final_pageVisits);
   var weekly_section = document.createElement("div");
   weekly_section.classList.add("weekly-container");
   var tagName = document.createElement("a");

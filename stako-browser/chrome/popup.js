@@ -39,17 +39,15 @@ function loadCarosel() {
     nick.textContent = activityData.nickname;
     mot.textContent = activityData.moto;
     //Dummy data for testing
-    /*
     activityData["4"] = {
       "pages_visited": 50,
       "top_tags" : {
-        "add": {"pages_visited" : 15},
+        "add-test-super-long-name": {"pages_visited" : 15},
         "github" : {"pages_visited" : 3},
         "jquery" : {"pages_visited" : 12},
         "git" : {"pages_visited" : 3}
       }
     }
-    */
     var weeks = Object.keys(activityData);
     var active = true;
     for(let week of weeks) {
@@ -61,7 +59,6 @@ function loadCarosel() {
       var tag2 = null;
       var pageVisits2 = null;
       for(let tag of tags) {
-        console.log("tag1 " + tag1 + " " + pageVisits1 + " tag2 " + tag2 + " " + pageVisits2);
         var currVisits = tagData[tag]["pages_visited"];
         if(!tag1 && !pageVisits1) {
           tag1 = tag;
@@ -79,7 +76,7 @@ function loadCarosel() {
       //How to handle case where the user hasn't registered any visits yet???
       var first_tag_div = createActivityDiv(tag1, pageVisits1);
       var second_tag_div = createActivityDiv(tag2, pageVisits2);
-      addTagsToCarousel(carousel, first_tag_div, second_tag_div, active);
+      addTagsToCarousel(carousel, first_tag_div, second_tag_div, active, week);
       if(active) {
         active = false;
       }
@@ -87,9 +84,13 @@ function loadCarosel() {
   });
 }
 
-function addTagsToCarousel(carousel, first_tag_div, second_tag_div, active) {
+function addTagsToCarousel(carousel, first_tag_div, second_tag_div, active, week) {
   var slide = document.createElement("div");
   var tagsContainer = document.createElement("div");
+  var tagAndDateContainer = document.createElement("div");
+  var date = document.createElement("div");
+  date.classList.add("date-div");
+  date.textContent = "2021 - Week " + week;
   slide.classList.add("carousel-item", "text-center", "p-4");
   if(active) {
     slide.classList.add("active");
@@ -97,7 +98,10 @@ function addTagsToCarousel(carousel, first_tag_div, second_tag_div, active) {
   tagsContainer.append(first_tag_div);
   tagsContainer.append(second_tag_div);
   tagsContainer.classList.add("tags-container");
-  slide.append(tagsContainer);
+  tagAndDateContainer.classList.add("tags-date-container");
+  tagAndDateContainer.appendChild(tagsContainer);
+  tagAndDateContainer.appendChild(date);
+  slide.append(tagAndDateContainer);
   carousel.append(slide);
 }
 
@@ -106,12 +110,16 @@ function createActivityDiv(final_tag, final_pageVisits) {
   weekly_section.classList.add("weekly-container");
   var tagName = document.createElement("a");
   var pageVisits = document.createElement("p");
-  tagName.textContent = final_tag;
+  if(final_tag.length > 10) {
+    tagName.textContent = final_tag.substring(0, 7) + "...";
+  } else {
+    tagName.textContent = final_tag;
+  }
   tagName.href = "https://stackoverflow.com/tags/" + final_tag;
   pageVisits.textContent = final_pageVisits;
   trackClick(tagName);
-  weekly_section.appendChild(tagName);
   weekly_section.appendChild(pageVisits);
+  weekly_section.appendChild(tagName);
   return weekly_section;
 }
 

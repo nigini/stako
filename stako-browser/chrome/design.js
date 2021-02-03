@@ -61,8 +61,18 @@ function insertDesign(banner) {
       var tag = element.cloneNode(true);
       var image = element.querySelector(".user-gravatar32");
       var reputation = element.querySelector(".user-details .-flair");
+      var name = element.querySelector(".user-details a");
+      var date = element.querySelector(".user-action-time");
       //Removes gray background
       element.parentElement.classList.remove("owner");
+      var nameAndDate = document.createElement("div");
+      if(name) {
+        nameAndDate.appendChild(name);
+      }
+      if(date) {
+        nameAndDate.appendChild(date);
+      }
+      element.parentElement.appendChild(nameAndDate);
       if(image) {
         image.classList.add("popup-hidden");
       }

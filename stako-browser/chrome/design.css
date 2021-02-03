@@ -36,3 +36,7 @@
 .user-info {
   margin: 1%;
 }
+
+.name-date {
+  display: flex;
+}

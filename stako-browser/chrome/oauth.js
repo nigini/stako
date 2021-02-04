@@ -103,14 +103,13 @@ function setPopupAlert(alert) {
 }
 
 function updateStakoUser(uuid) {
-    console.log('GET USER: ' + uuid);
+    console.log('UPDATE USER: ' + uuid);
     const search_url = STAKO_USER_URL + uuid + '/';
-    getValidToken().then( token => {
+    return getValidToken().then( token => {
         if(token) {
             let header = {'Authorization': `Bearer ${token.access_token}`}
             const request = new Request(search_url, {method: 'GET', headers: header});
-            return fetch(request)
-                .then(response => {
+            return fetch(request).then(response => {
                     console.debug(response);
                     if (response.status === 200) {
                         return response.json()
@@ -130,9 +129,11 @@ function updateStakoUser(uuid) {
                 })
                 .catch(error => {
                     console.error(error);
+                    return null;
                 });
         } else {
-            console.log('NOT ACCESS TOKEN AVAILABLE!')
+            console.log('NOT ACCESS TOKEN AVAILABLE!');
+            return null;
         }
     });
 }

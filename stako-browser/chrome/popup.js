@@ -33,69 +33,102 @@ function loadCarosel() {
     var userData = result["STAKO_USER"];
     var nick = document.getElementById("nickname");
     var mot = document.getElementById("motto");
-    var carosel = document.querySelector("#carouselContent > .carousel-inner");
-    var topTags = userData["activity"]["weekly_summary"]["2021"]["3"]["top_tags"]
-    var tags = Object.keys(topTags);
-    nick.textContent = userData.nickname;
-    mot.textContent = userData.moto;
-    for(let tag of tags) {
-      var slide = document.createElement("div");
-      var tagName = document.createElement("a");
-      var pageVisits = document.createElement("p");
-      tagName.textContent = tag;
-      tagName.href = "https://stackoverflow.com/tags/" + tag;
-      pageVisits.textContent = topTags[tag]["pages_visited"];
-      slide.classList.add("carousel-item", "text-center", "p-4");
-      if(tag === tags[0]) {
-        slide.classList.add("active");
+    var carousel = document.querySelector("#carouselContent > .carousel-inner");
+    //TODO: Make weekly activity processing work for years besides 2021.
+    var activityData = userData["activity"]["weekly_summary"]["2021"];
+    nick.textContent = activityData.nickname;
+    mot.textContent = activityData.moto;
+    //Dummy data for testing
+    activityData["4"] = {
+      "pages_visited": 50,
+      "top_tags" : {
+        "add-test-super-long-name": {"pages_visited" : 15},
+        "github" : {"pages_visited" : 3},
+        "jquery" : {"pages_visited" : 12},
+        "git" : {"pages_visited" : 3}
       }
-      trackClick(tagName);
-      var innerBlock = document.createElement("div");
-      innerBlock.classList.add("weekly-container");
-      innerBlock.appendChild(tagName);
-      innerBlock.appendChild(pageVisits);
-      slide.append(innerBlock);
-      carosel.append(slide);
+    }
+    var weeks = Object.keys(activityData);
+    var active = true;
+    for(let week of weeks) {
+      var tags = Object.keys(activityData[week]["top_tags"]);
+      var tagData = activityData[week]["top_tags"];
+      //Find the top two tags based on page visits.
+      var tag1 = null;
+      var pageVisits1 = null;
+      var tag2 = null;
+      var pageVisits2 = null;
+      for(let tag of tags) {
+        var currVisits = tagData[tag]["pages_visited"];
+        if(!tag1 && !pageVisits1) {
+          tag1 = tag;
+          pageVisits1 = currVisits;
+        } else if(currVisits >= pageVisits1) {
+          tag2 = tag1;
+          pageVisits2 = pageVisits1;
+          tag1 = tag;
+          pageVisits1 = currVisits;
+        } else if(currVisits >= pageVisits2 || (!tag2 && !pageVisits2)) {
+          tag2 = tag;
+          pageVisits2 = currVisits;
+        }
+      }
+      //How to handle case where the user hasn't registered any visits yet???
+      var first_tag_div = createActivityDiv(tag1, pageVisits1);
+      var second_tag_div = createActivityDiv(tag2, pageVisits2);
+      addTagsToCarousel(carousel, first_tag_div, second_tag_div, active, week);
+      if(active) {
+        active = false;
+      }
     }
   });
-  var test = {
-    "nickname": "Ben",
-    "uuid": "str(uuid.uuid4())",
-    "moto": "Carpe Diem",
-    "start_date": "int(datetime.timestamp(datetime.utcnow()))",
-    "activity": {
-      "weekly_summary": [
-        {
-          "year": 2021,
-          "week": 0,
-          "top_tags": [
-            {
-              "tag_name": "Java",
-              "pages_visits": 0
-            },
-            {
-              "tag_name": "Git",
-              "pages_visits": 0
-            },
-            {
-              "tag_name": "Bit arithmetic",
-              "pages_visits": 0
-            }
-          ],
-          "pages_visits": 0
-        }
-      ],
-      "updated": "int(datetime.timestamp(datetime.utcnow()))"
-    }
-  }
-  }
+}
 
-  function trackClick(element) {
-    //Tracks whether one of the elements of interest has been clicked on.
-    element.addEventListener('click', function (e) {
-      chrome.runtime.sendMessage({type: "stackoverflow:click", url: element.href}, function(response) {
-        console.log(response.testType + " " + response.testURL);
-      });
-      chrome.tabs.create({url: element.href, active: false});
-    });
+function addTagsToCarousel(carousel, first_tag_div, second_tag_div, active, week) {
+  var slide = document.createElement("div");
+  var tagsContainer = document.createElement("div");
+  var tagAndDateContainer = document.createElement("div");
+  var date = document.createElement("div");
+  date.classList.add("date-div");
+  date.textContent = "2021 - Week " + week;
+  slide.classList.add("carousel-item", "text-center", "p-4");
+  if(active) {
+    slide.classList.add("active");
   }
+  tagsContainer.append(first_tag_div);
+  tagsContainer.append(second_tag_div);
+  tagsContainer.classList.add("tags-container");
+  tagAndDateContainer.classList.add("tags-date-container");
+  tagAndDateContainer.appendChild(tagsContainer);
+  tagAndDateContainer.appendChild(date);
+  slide.append(tagAndDateContainer);
+  carousel.append(slide);
+}
+
+function createActivityDiv(final_tag, final_pageVisits) {
+  var weekly_section = document.createElement("div");
+  weekly_section.classList.add("weekly-container");
+  var tagName = document.createElement("a");
+  var pageVisits = document.createElement("p");
+  if(final_tag.length > 10) {
+    tagName.textContent = final_tag.substring(0, 7) + "...";
+  } else {
+    tagName.textContent = final_tag;
+  }
+  tagName.href = "https://stackoverflow.com/tags/" + final_tag;
+  pageVisits.textContent = final_pageVisits;
+  trackClick(tagName);
+  weekly_section.appendChild(pageVisits);
+  weekly_section.appendChild(tagName);
+  return weekly_section;
+}
+
+function trackClick(element) {
+  //Tracks whether one of the elements of interest has been clicked on.
+  element.addEventListener('click', function (e) {
+    chrome.runtime.sendMessage({type: "stackoverflow:click", url: element.href}, function(response) {
+      console.log(response.testType + " " + response.testURL);
+    });
+    chrome.tabs.create({url: element.href, active: false});
+  });
+}

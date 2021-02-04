@@ -119,6 +119,7 @@ class UserActivity(APIBase):
                 new_activity['uuid'] = uuid
                 new_activity['url'] = valid_data.pop('url')
                 new_activity['type'] = valid_data.pop('type')
+                #TODO REMOVE DATA
                 new_activity['data'] = valid_data
                 result = self.data_source.save_activity(new_activity)
                 if result:

@@ -180,12 +180,14 @@ class TestActivityAPI(TestAPI):
 								   headers=header, content_type='application/json')
 			self.assertEqual(400, response.status_code)
 
+			# TESTING CLICK TYPE
 			# MISSING DATA FOR VALID TYPE
 			another_activity = an_activity.copy()
 			another_activity['type'] = ACTIVITY_TYPE_SO_CLICK
 			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(another_activity),
 								   headers=header, content_type='application/json')
 			self.assertEqual(400, response.status_code)
+
 			# FIXING FOR click TYPE
 			another_activity['element'] = 'USER:1234'
 			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(another_activity),
@@ -200,5 +202,12 @@ class TestActivityAPI(TestAPI):
 			# TODO Only admin can act on other's account
 			# self.assertEqual(403, response.status_code)
 
-
-
+			# TESTING CLICK TYPE COMMING FROM POPUP
+			# MISSING DATA FOR VALID TYPE
+			another_activity = an_activity.copy()
+			another_activity['url'] = 'https://www.stako.org/extensions/chrome'
+			another_activity['type'] = ACTIVITY_TYPE_SO_CLICK
+			another_activity['element'] = 'TAG:1234'
+			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(another_activity),
+								   headers=header, content_type='application/json')
+			self.assertEqual(200, response.status_code)

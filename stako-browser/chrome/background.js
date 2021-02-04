@@ -45,7 +45,7 @@ function saveStakoActivity(activity_body) {
         let uuid = user.STAKO_USER.uuid;
         if(uuid) {
             //Add the uuid to the type of activity.
-            activity_body["Element"] = uuid;
+            activity_body["element"] = uuid;
             var key = await getToken();
             var auth_key = "Bearer " + key;
             console.log(auth_key)
@@ -70,7 +70,7 @@ function saveStakoActivity(activity_body) {
 function getToken() {
     return new Promise(function(resolve, reject) {
         chrome.storage.local.get(['STAKO_TOKEN'], function (data) {
-            let key = data["STAKO_TOKEN"]["key"];
+            let key = data["STAKO_TOKEN"]["access_token"];
             console.log(key);
             resolve(key)
         });

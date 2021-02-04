@@ -5,3 +5,4 @@ requests
 celery
 flask-restful
 pytest
+flask_jwt_extended

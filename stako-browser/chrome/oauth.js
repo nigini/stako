@@ -104,7 +104,8 @@ function setPopupAlert(alert) {
 function updateStakoUser(uuid) {
     console.log('GET USER: ' + uuid);
     const search_url = STAKO_USER_URL + uuid + '/';
-    const request = new Request(search_url, {method: 'GET'});
+    let header = {'Authorization': 'Bearer Averylongkey1234769897034980723985-39048-209348-0932845'};
+    const request = new Request(search_url, {method: 'GET', headers : {}});
     return fetch(request)
         .then(response => {
             console.debug(response);

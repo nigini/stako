@@ -41,13 +41,16 @@ const STAKO_API_URL = 'https://stako.org/api/v1/';
 const STAKO_ACTIVITY_URL = STAKO_API_URL + 'user/{}/activity/';
 
 function saveStakoActivity(activity_body) {
-    chrome.storage.local.get({'STAKO_USER': null}, function (user) {
+    chrome.storage.local.get({'STAKO_USER': null}, async function (user) {
         let uuid = user.STAKO_USER.uuid;
         if(uuid) {
             //Add the uuid to the type of activity.
             activity_body["Element"] = uuid;
+            var key = await getToken();
+            var auth_key = "Bearer " + key;
+            console.log(auth_key)
             const request = new Request(STAKO_ACTIVITY_URL.replace('{}', uuid),
-                {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(activity_body)});
+                {method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': auth_key}, body: JSON.stringify(activity_body)});
             fetch(request)
                 .then(response => {
                     if (response.status === 200) {
@@ -61,6 +64,16 @@ function saveStakoActivity(activity_body) {
             console.log('CANNOT SYNC ACTIVITY WITHOUT A USER_ID! TRY TO LOGIN AGAIN!');
             addActivityToCache(activity_body);
         }
+    });
+}
+
+function getToken() {
+    return new Promise(function(resolve, reject) {
+        chrome.storage.local.get(['STAKO_TOKEN'], function (data) {
+            let key = data["STAKO_TOKEN"]["key"];
+            console.log(key);
+            resolve(key)
+        });
     });
 }
 

@@ -12,7 +12,7 @@ function displayVisit () {
       var visitList = result.visitList;
       var visit = {};
       //visit = visitList.pop();
-      console.log(visit);
+      //console.log(visit);
       //visitList.push(visit);
 
       $('#url').text(visit.tabUrl);

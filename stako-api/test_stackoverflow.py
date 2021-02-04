@@ -52,7 +52,7 @@ class TestStackOverflow(unittest.TestCase):
 		# OBS: This test turns on (i.e., Question(True)) the StackOverflow MOCK DATA.
 		# Check file test_stackoverflow.json and make sure it reflects this test's configuration
 		q_ids = ['41051434', '16819222', '65474737']
-		so_questions = Question(True).get_questions(q_ids)
+		so_questions = Question().get_questions(q_ids)
 		self.assertEqual(3, len(so_questions))
 		for key in so_questions.keys():
 			self.assertTrue(key in q_ids)

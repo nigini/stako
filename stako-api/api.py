@@ -1,33 +1,44 @@
 import settings
 import requests
 from flask import Flask, request
+import flask_restful
 from flask_restful import Resource, Api
 import logging
 from mongo import APIMongo, ExperimentMongo
-from data import StakoUser, StakoActivity, StakoToken
+from data import StakoActivity
 from urllib.parse import urlparse
+from functools import wraps
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, verify_jwt_in_request, get_raw_jwt
+from flask_jwt_extended.exceptions import NoAuthorizationError
+from jwt.exceptions import ExpiredSignatureError
+
+
+def authorize_user(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if 'uuid' in kwargs:
+            try:
+                verify_jwt_in_request()
+                if get_jwt_identity() == kwargs['uuid']:
+                    return func(*args, **kwargs)
+                else:
+                    flask_restful.abort(403)
+            except (ExpiredSignatureError, NoAuthorizationError):
+                flask_restful.abort(401)
+        else:
+            flask_restful.abort(400)
+    return wrapper
 
 
 class APIBase(Resource):
     def __init__(self):
-        if app.testing:
-            settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
-            self.testing = True
-        self.testing = False
         self.data_source = APIMongo(settings)
         self.auth = ExperimentMongo(settings)
-
-    @staticmethod
-    def get_tag_list(tags_string):
-        tag_list = tags_string.split(';')
-        tag_list.sort()
-        return tag_list
 
 
 class Auth(APIBase):
     GOOGLE_OAUTH_INFO = 'https://oauth2.googleapis.com/tokeninfo?access_token={}'
     TESTER_EMAIL = 'user@tester.com'
-    TESTER_TOKEN = 'XPTO_1234567890'
 
     def get(self):
         data = request.args
@@ -36,11 +47,12 @@ class Auth(APIBase):
             if valid:
                 user = self.auth.get_user(data.get('email'))
                 if 'uuid' in user.keys():
-                    token = StakoToken.get_new_token()
-                    token['uuid'] = user['uuid']
-                    return token
+                    # TODO: Should check for existing one first?
+                    token = create_access_token(identity=user['uuid'])
+                    return {'uuid': user['uuid'], 'access_token': token}
                 else:
-                    return {'MESSAGE': 'Non Authorized: User with email {} is not a registered STAKO user!'}, 401
+                    return {'MESSAGE': 'Non Authorized: User with email {} is not a registered STAKO user!'
+                            .format(data.get('email'))}, 401
             else:
                 return {'MESSAGE': 'Non Authorized: Invalid OAUTH token for provided email!'}, 401
         else:
@@ -48,8 +60,8 @@ class Auth(APIBase):
 
     def _validate_token(self, email, google_id, oauth_token):
         logging.info('[API:AUTHORIZE] EMAIL {}, GID {}, and TOKEN {}.'.format(email, google_id, oauth_token))
-        if self.testing:
-            return email == Auth.TESTER_EMAIL and oauth_token == Auth.TESTER_TOKEN
+        if settings.STAKO_TEST:
+            return email == Auth.TESTER_EMAIL
         else:
             r_url = Auth.GOOGLE_OAUTH_INFO.format(oauth_token)
             response = requests.get(r_url)
@@ -64,8 +76,9 @@ class Auth(APIBase):
         return False
 
 
-
 class User(APIBase):
+    method_decorators = [authorize_user]
+
     def get(self, uuid):
         logging.info('[API:GetUser] ID {}'.format(uuid))
         a_user = self.data_source.get_user(uuid)
@@ -74,9 +87,8 @@ class User(APIBase):
     def put(self, uuid):
         user = self.data_source.get_user(uuid)
         if user:
-            # TODO: Block/sort out non-json requests
             new_data = request.json
-            for key in ['nickname', 'email', 'motto']:
+            for key in ['nickname', 'motto']:
                 if key in new_data:
                     user[key] = new_data[key]
             if 'activity' in new_data:
@@ -93,52 +105,8 @@ class User(APIBase):
             return {'MESSAGE': '404: User {} not found!'.format(uuid)}, 404
 
 
-class NewUser(APIBase):
-    def get(self):
-        search = request.args
-        if search and ('key' in search.keys()) and ('value' in search.keys()):
-            key = search['key']
-            value = search['value']
-            if key == 'email':
-                email = value
-                uuid = self._authorize(email)
-                if uuid:
-                    key = 'uuid'
-                    value = uuid
-                else:
-                    return {'MESSAGE': 'The email "{}" is not associated to an authorized user.'.format(email)}, 403
-            if key == 'uuid':
-                user = self._get_user(key, value)
-                if user:
-                    return user
-                else:
-                    return {'MESSAGE': 'Could not find a user matching search {}.'.format(search)}, 404
-            return {'MESSAGE': 'Malformed search request: KEY not in [uuid, email].'}, 400
-        return {'MESSAGE': 'Malformed search request: need [KEY:K,VALUE:V] params.'}, 400
-
-
-    def post(self):
-        new_user = StakoUser.get_empty_user()
-        if self.data_source.save_user(new_user):
-            logging.info('[API:PostUser] UUID {}'.format(new_user['uuid']))
-            return {'uuid': new_user['uuid']}
-        else:
-            # TODO: Should return and ERROR?
-            logging.info('[API:PostUser] ERROR!')
-            return {}
-
-    def _authorize(self, email):
-        auth = self.auth.get_user(email)
-        if auth == {}:
-            return False
-        else:
-            return auth['uuid']
-
-    def _get_user(self, key, value):
-        return self.data_source.get_user(value, key)
-
-
 class UserActivity(APIBase):
+    method_decorators = [authorize_user]
 
     def post(self, uuid):
         user = self.data_source.get_user(uuid)
@@ -151,6 +119,7 @@ class UserActivity(APIBase):
                 new_activity['uuid'] = uuid
                 new_activity['url'] = valid_data.pop('url')
                 new_activity['type'] = valid_data.pop('type')
+                #TODO REMOVE DATA
                 new_activity['data'] = valid_data
                 result = self.data_source.save_activity(new_activity)
                 if result:
@@ -169,7 +138,6 @@ class UserActivity(APIBase):
 
         logging.error('[API:PostActivity] ERROR: {}'.format(msg))
         return {'MESSAGE': msg}, err
-
 
     def validate_activity_data(self, request_data):
         activity_type = request_data.pop('type', None)
@@ -192,10 +160,13 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 api = Api(app)
 
+app.config['JWT_SECRET_KEY'] = settings.STAKO_JWT_SECRET
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = settings.STAKO_JWT_TOKEN_EXPIRES
+jwt = JWTManager(app)
+
 prefix = '/v1'
 api.add_resource(Auth, '{}/auth/'.format(prefix))
 api.add_resource(User, '{}/user/<uuid>/'.format(prefix))
-api.add_resource(NewUser, '{}/user/'.format(prefix))
 api.add_resource(UserActivity, '{}/user/<uuid>/activity/'.format(prefix))
 
 if __name__ == '__main__':

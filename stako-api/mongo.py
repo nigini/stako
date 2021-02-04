@@ -113,7 +113,7 @@ class UserSummary:
 		db = client[settings.MONGODB_NAME]
 		self.db_activities = db[COLLECTION_ACTIVITIES]
 		self.api = APIMongo(settings)
-		self.so_questions = Question(settings.STAKO_TEST)
+		self.so_questions = Question()
 
 	def update_user(self, uuid, reset=False, act_newer_then_gmt_timestamp=None):
 		user = self.api.get_user(uuid)

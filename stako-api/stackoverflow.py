@@ -8,8 +8,8 @@ API_SO_QS = 'https://api.stackexchange.com/2.2/questions/{}?site=stackoverflow&k
 
 
 class Question:
-    def __init__(self, testing=False):
-        self.testing = testing
+    def __init__(self):
+        self.testing = settings.STAKO_TEST
 
     def get_questions(self, question_ids):
         to_return = {}
@@ -45,11 +45,11 @@ class Question:
     def _test_questions(question_ids):
         logging.info('[SO:GetQuestions] USING MOCK DATA!')
         with open('test_stackoverflow.json') as so_data_file:
-
             so_data = json.load(so_data_file)['questions']
             to_return = []
             for q in so_data:
                 if str(q['question_id']) in question_ids:
+                    print(q['question_id'])
                     to_return.append(q)
             return to_return
 

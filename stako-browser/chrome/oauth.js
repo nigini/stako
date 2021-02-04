@@ -19,10 +19,11 @@ function getValidToken() {
         chrome.storage.local.get({'STAKO_TOKEN': null}, function (data) {
             let token = data['STAKO_TOKEN'];
             if (token) {
-                let utc_now = Math.floor(Date.now() / 1000);
-                if ((token.expiration - utc_now) > 60) { // Token expires in 60s or more?
-                    resolve(token);
-                }
+                resolve(token)
+                // let utc_now = Math.floor(Date.now() / 1000);
+                // if ((token.expiration - utc_now) > 60) { // Token expires in 60s or more?
+                //     resolve(token);
+                // }
             }
             resolve(null);
         });
@@ -104,28 +105,34 @@ function setPopupAlert(alert) {
 function updateStakoUser(uuid) {
     console.log('GET USER: ' + uuid);
     const search_url = STAKO_USER_URL + uuid + '/';
-    let header = {'Authorization': 'Bearer Averylongkey1234769897034980723985-39048-209348-0932845'};
-    const request = new Request(search_url, {method: 'GET', headers : {}});
-    return fetch(request)
-        .then(response => {
-            console.debug(response);
-            if (response.status === 200) {
-                return response.json()
-                    .then( stakoUser => {
-                        console.log('FOUND USER: ' + JSON.stringify(stakoUser));
-                        chrome.storage.local.set({'STAKO_USER': stakoUser});
-                        return stakoUser;
-                    });
-            } else if (response.status === 404) {
-                return null;
-            } else {
-                response.text()
-                    .then(text => {
-                        throw Error('Could not search for user: HTTP_STATUS ' + response.status + ' + ' + text)
-                    });
-            }
-        })
-        .catch(error => {
-            console.error(error);
-        });
+    getValidToken().then( token => {
+        if(token) {
+            let header = {'Authorization': `Bearer ${token.access_token}`}
+            const request = new Request(search_url, {method: 'GET', headers: header});
+            return fetch(request)
+                .then(response => {
+                    console.debug(response);
+                    if (response.status === 200) {
+                        return response.json()
+                            .then( stakoUser => {
+                                console.log('FOUND USER: ' + JSON.stringify(stakoUser));
+                                chrome.storage.local.set({'STAKO_USER': stakoUser});
+                                return stakoUser;
+                            });
+                    } else if (response.status === 404) {
+                        return null;
+                    } else {
+                        response.text()
+                            .then(text => {
+                                throw Error('Could not search for user: HTTP_STATUS ' + response.status + ' + ' + text)
+                            });
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        } else {
+            console.log('NOT ACCESS TOKEN AVAILABLE!')
+        }
+    });
 }

@@ -56,6 +56,7 @@ class TestAuthAPI(TestAPI):
 			self.assertRegex(auth_token['access_token'], '[a-zA-Z0-9-_]+?.[a-zA-Z0-9-_]+?.([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$')
 			self.assertTrue(isinstance(auth_token['expiration'], int))
 			# This can fail by a second if the server call is at the moment where the second changes (1/1000 chance)?
+			self.assertTrue(auth_token['expiration'] > 0)
 			self.assertTrue(auth_token['expiration'] == now+delta or auth_token['expiration'] == now+delta-1)
 
 			# TODO: CREATE VALID EMAIL, GOOGLE_ID, AND TOKEN

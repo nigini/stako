@@ -1,9 +1,8 @@
 window.onload = function () {
     //chrome.storage.local.remove('STAKO_TOKEN');
-    getValidToken().then( token => {
-        console.log('STAKO_TOKEN: ' + JSON.stringify(token));
+    getValidToken(true).then( token => {
         if (!token) {
-            authenticateUser();
+            setPopupAlert('WE COULD NOT LOG YOU IN! :(');
         } else {
             updatePopupData();
         }
@@ -14,18 +13,27 @@ const STAKO_API_URL = 'https://stako.org/api/v1/';
 const STAKO_AUTH_URL = STAKO_API_URL + 'auth/';
 const STAKO_USER_URL = STAKO_API_URL + 'user/';
 
-function getValidToken() {
+function getValidToken(reAuth=true) {
     return new Promise(function(resolve, reject) {
         chrome.storage.local.get({'STAKO_TOKEN': null}, function (data) {
             let token = data['STAKO_TOKEN'];
             if (token) {
-                resolve(token)
-                // let utc_now = Math.floor(Date.now() / 1000);
-                // if ((token.expiration - utc_now) > 60) { // Token expires in 60s or more?
-                //     resolve(token);
-                // }
+                console.log('STAKO_TOKEN: ' + JSON.stringify(token));
+                let utc_now = Math.floor(Date.now() / 1000);
+                if (token.expiration && ((token.expiration-utc_now) > 10)) { // Token expires in 10s or more?
+                    return resolve(token);
+                } else {
+                    console.log('STAKO_TOKEN EXPIRED!');
+                }
             }
-            resolve(null);
+            if(reAuth) {
+                return authenticateUser().then(success => {
+                    if(success) {
+                        return resolve(getValidToken(false));
+                    }
+                });
+            }
+            return resolve(null);
         });
     });
 }
@@ -34,25 +42,29 @@ function getValidToken() {
  * If the authentication happens correctly, this method will also update the cached STAKO_USER.
  */
 function authenticateUser() {
-    chrome.identity.getAuthToken({interactive: true}, function (token) {
-        if (chrome.runtime.lastError) {
-            console.log('LOG IN FAIL: ' + chrome.runtime.lastError.message);
-        } else {
-            chrome.identity.getProfileUserInfo(function (info) {
-                console.log('AUTHENTICATING: ' + info.email + ' - GOOGLE_ID: ' + info.id + ' - TOKEN: ' + token);
-                chrome.storage.local.set({email: info.email});
-                authStakoUser(info.email, info.id, token).then( stakoToken => {
-                    if (stakoToken) {
-                        chrome.storage.local.set({'STAKO_TOKEN': stakoToken});
-                        updateStakoUser(stakoToken.uuid).then(user => {
-                            updatePopupData();
-                        })
-                    } else {
-                        console.log('FAIL TO RETRIEVE STAKO TOKEN!');
-                    }
+    return new Promise(function(resolve, reject) {
+        chrome.identity.getAuthToken({interactive: true}, function (token) {
+            if (chrome.runtime.lastError) {
+                console.log('LOG IN FAIL: ' + chrome.runtime.lastError.message);
+                return resolve(false);
+            } else {
+                chrome.identity.getProfileUserInfo(function (info) {
+                    console.log('AUTHENTICATING: ' + info.email + ' - GOOGLE_ID: ' + info.id + ' - TOKEN: ' + token);
+                    chrome.storage.local.set({email: info.email});
+                    authStakoUser(info.email, info.id, token).then(stakoToken => {
+                        if (stakoToken) {
+                            chrome.storage.local.set({'STAKO_TOKEN': stakoToken});
+                            updateStakoUser(stakoToken.uuid).then(user => {
+                                return resolve(true);
+                            })
+                        } else {
+                            console.log('FAIL TO RETRIEVE STAKO TOKEN!');
+                            return resolve(false);
+                        }
+                    });
                 });
-            });
-        }
+            }
+        });
     });
 }
 
@@ -62,7 +74,6 @@ function authStakoUser(userEmail, googleID, oauthToken) {
     const request = new Request(auth_url, {method: 'GET'});
     return fetch(request)
         .then(response => {
-            console.debug(response);
             if (response.status === 200) {
                 return response.json()
                     .then( stakoToken => {
@@ -132,7 +143,7 @@ function updateStakoUser(uuid) {
                     return null;
                 });
         } else {
-            console.log('NOT ACCESS TOKEN AVAILABLE!');
+            console.log('NO ACCESS TOKEN AVAILABLE!');
             return null;
         }
     });

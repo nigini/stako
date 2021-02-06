@@ -5,7 +5,7 @@ import settings
 from pymongo import MongoClient
 import mongo
 from mongo import ExperimentMongo
-from data import StakoActivity
+from data import StakoActivity, get_utc_timestamp
 import json
 
 from api import app, Auth
@@ -46,11 +46,19 @@ class TestAuthAPI(TestAPI):
 			# INVALID EMAIL, GOOGLE_ID, AND TOKEN
 			response = client.get(URL + 'auth/?email={}&google_id={}&token={}'.format('', '', ''))
 			self.assertEqual(401, response.status_code)
+
+			now = get_utc_timestamp()
+			delta = settings.STAKO_JWT_TOKEN_EXPIRES
 			response = client.get(URL + 'auth/?email={}&google_id={}&token={}'.format(Auth.TESTER_EMAIL, '', ''))
 			self.assertEqual(200, response.status_code)
 			auth_token = response.get_json()
-			# TODO: CREATE VALID EMAIL, GOOGLE_ID, AND TOKEN
+			self.assertEqual(self.tester_uuid, auth_token['uuid'])
+			self.assertRegex(auth_token['access_token'], '[a-zA-Z0-9-_]+?.[a-zA-Z0-9-_]+?.([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$')
+			self.assertTrue(isinstance(auth_token['expiration'], int))
+			# This can fail by a second if the server call is at the moment where the second changes (1/1000 chance)?
+			self.assertTrue(auth_token['expiration'] == now+delta or auth_token['expiration'] == now+delta-1)
 
+			# TODO: CREATE VALID EMAIL, GOOGLE_ID, AND TOKEN
 			# TEST GET_USER
 			response = client.get(URL + 'user/{}/'.format(self.tester_uuid))
 			self.assertEqual(401, response.status_code)
@@ -70,6 +78,7 @@ class TestAuthAPI(TestAPI):
 			response = client.get(URL + 'auth/?email={}&google_id={}&token={}'.format(Auth.TESTER_EMAIL, '', ''))
 			self.assertEqual(200, response.status_code)
 			auth_token = response.get_json()
+			self.assertEqual()
 			print('TOKEN: {}'.format(auth_token))
 			header = {'Authorization': 'Bearer {}'.format(auth_token['access_token'])}
 			response = client.get(URL + 'user/{}/'.format(self.tester_uuid), headers=header)

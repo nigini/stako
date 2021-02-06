@@ -8,7 +8,7 @@ from mongo import APIMongo, ExperimentMongo
 from data import StakoActivity
 from urllib.parse import urlparse
 from functools import wraps
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, verify_jwt_in_request, get_raw_jwt
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, verify_jwt_in_request, decode_token
 from flask_jwt_extended.exceptions import NoAuthorizationError
 from jwt.exceptions import ExpiredSignatureError
 
@@ -49,7 +49,8 @@ class Auth(APIBase):
                 if 'uuid' in user.keys():
                     # TODO: Should check for existing one first?
                     token = create_access_token(identity=user['uuid'])
-                    return {'uuid': user['uuid'], 'access_token': token}
+                    token_exp = decode_token(token)['exp']
+                    return {'uuid': user['uuid'], 'access_token': token, 'expiration': token_exp}
                 else:
                     return {'MESSAGE': 'Non Authorized: User with email {} is not a registered STAKO user!'
                             .format(data.get('email'))}, 401

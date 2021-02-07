@@ -126,7 +126,7 @@ function createActivityDiv(final_tag, final_pageVisits) {
 function trackClick(element) {
   //Tracks whether one of the elements of interest has been clicked on.
   element.addEventListener('click', function (e) {
-    chrome.runtime.sendMessage({type: "stackoverflow:click", url: element.href}, function(response) {
+    chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: element.href}, function(response) {
       console.log(response.testType + " " + response.testURL);
     });
     chrome.tabs.create({url: element.href, active: false});

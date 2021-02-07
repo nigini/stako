@@ -148,7 +148,7 @@ function getTimeOut(element) {
     // check whether timeIn is null and whether the difference is greater than one second.
     if(timeIn && totalTime >= DELAY) {
       //If the condition is met, record the event by sending a message to background.js
-      chrome.runtime.sendMessage({type: "stackoverflow:mouse", url: window.location.href, time: totalTime}, function(response){
+      chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:mouse", url: window.location.href, time: totalTime}, function(response){
         console.log(response.testType + " " + response.testURL + " " + response.testTime);
       });
     }
@@ -159,7 +159,7 @@ function getTimeOut(element) {
 function trackClick(element) {
   //Tracks whether one of the elements of interest has been clicked on.
   element.addEventListener('click', function (e) {
-    chrome.runtime.sendMessage({type: "stackoverflow:click", url: window.location.href}, function(response) {
+    chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: window.location.href}, function(response) {
       console.log(response.testType + " " + response.testURL);
     });
   });

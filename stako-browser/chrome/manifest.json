@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "STAKO",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "STAKO stores your Stack Overflow visits, provides personalized statistics, and adds to your experience of Stack Overflow Q&A pages.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt1h7WWiEaVx0Voi4A3b40nRSi7JuGr+a/Jce+l1UST77snkNVvc7qAkeugeKRUWyxp9j/CBLBY/EpCfl8D8f3uT6Vb1LY91meIG5BFRaZR3Y4J3ESPReGo2A30Xg8/E2Z5rWXSUIob619iRIB7YMP8HB44CrN5waXChjRAh9VpNejF6OB34LF1wu2p4QUNqmyzblBvSVUc8mRQRDQ+drP5HvIy3LzQMoGwMFBSCYtBTMLvA1zEhOMSyeSSJ1eJk4Ef8Rgfk53VqV34tplTpJxA2RLQATxOv9Pu2GtwRBs/r06fLg+O87XwjtHyC6risydT7T7bM/dXhN2v76AT6RgQIDAQAB",
   "icons": {
@@ -24,14 +24,12 @@
   },
   "permissions": [
     "tabs",
-    "activeTab",
     "storage",
     "webNavigation",
     "identity",
     "identity.email",
     "https://stako.org/*",
-    "https://stackoverflow.com/*",
-    "declarativeContent"
+    "https://stackoverflow.com/*"
   ],
   "oauth2": {
     "client_id": "504661212570-gn5nc6mtccuj7hsjcn419vjfapbq4f9a.apps.googleusercontent.com",

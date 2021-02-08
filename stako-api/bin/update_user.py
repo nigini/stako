@@ -1,10 +1,10 @@
 import sys
 import os
 from datetime import datetime
-import settings
-from mongo import APIMongo, ExperimentMongo, UserSummary
 
 sys.path.append(os.getcwd() + '/..')
+import settings
+from mongo import APIMongo, ExperimentMongo, UserSummary
 
 api = APIMongo(settings)
 exp = ExperimentMongo(settings)

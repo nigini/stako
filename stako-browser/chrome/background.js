@@ -12,6 +12,7 @@ chrome.runtime.onMessage.addListener(
                 type: request.type,
                 url: request.url,
                 duration: request.time,
+                element: request.ele,
             };
             saveStakoActivity(mouseOver);
             sendResponse({testType: request.type, testURL: request.url, testTime: request.time});
@@ -19,6 +20,7 @@ chrome.runtime.onMessage.addListener(
             var click = {
                 type: request.type,
                 url: request.url,
+                element: request.ele,
             };
             saveStakoActivity(click);
             sendResponse({testType: request.type, testURL: request.url});
@@ -45,7 +47,7 @@ function saveStakoActivity(activity_body) {
         let uuid = user.STAKO_USER.uuid;
         if(uuid) {
             //Add the uuid to the type of activity.
-            activity_body["element"] = uuid;
+            //activity_body["element"] = uuid;
             var token = await getValidToken(true);
             var key = token["access_token"];
             var auth_key = "Bearer " + key;

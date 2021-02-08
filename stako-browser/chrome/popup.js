@@ -38,16 +38,6 @@ function loadCarosel() {
     var activityData = userData["activity"]["weekly_summary"]["2021"];
     nick.textContent = activityData.nickname;
     mot.textContent = activityData.moto;
-    //Dummy data for testing
-    activityData["4"] = {
-      "pages_visited": 50,
-      "top_tags" : {
-        "add-test-super-long-name": {"pages_visited" : 15},
-        "github" : {"pages_visited" : 3},
-        "jquery" : {"pages_visited" : 12},
-        "git" : {"pages_visited" : 3}
-      }
-    }
     var weeks = Object.keys(activityData);
     var active = true;
     for(let week of weeks) {
@@ -126,9 +116,10 @@ function createActivityDiv(final_tag, final_pageVisits) {
 function trackClick(element) {
   //Tracks whether one of the elements of interest has been clicked on.
   element.addEventListener('click', function (e) {
-    chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: element.href}, function(response) {
+    var link = "https://www.stako.org/chrome-extension";
+    chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: element.href, ele: link}, function(response) {
       console.log(response.testType + " " + response.testURL);
     });
-    chrome.tabs.create({url: element.href, active: false});
+    chrome.tabs.create({url: element.href, active: true});
   });
 }

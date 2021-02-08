@@ -1,20 +1,28 @@
 import sys
 import os
-sys.path.append(os.getcwd() + '/..')
-
+from datetime import datetime
 import settings
 from mongo import APIMongo, ExperimentMongo, UserSummary
+
+sys.path.append(os.getcwd() + '/..')
 
 api = APIMongo(settings)
 exp = ExperimentMongo(settings)
 sum = UserSummary(settings)
 
+# TODO: Add command line argument to force restart for specific user
 force_restart = False
 
-#TESTERS
-nigini = exp.get_user('nigini@gmail.com')
-nigini_u = api.get_user(nigini['uuid'])
 
-user = nigini_u
-result = sum.update_user(user['uuid'], force_restart, user['activity']['updated'])
+def update_all():
+    accounts = exp.get_all()
+    for a in accounts:
+        user = api.get_user(a['uuid'])
+        result = sum.update_user(user['uuid'], force_restart, user['activity']['updated'])
+        print("Updated user {}: {}".format(user['uuid'], result))
 
+
+print("===========================================================")
+print("USERS UPDATE: {}".format(datetime.now()))
+print("===========================================================")
+update_all()

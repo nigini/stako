@@ -171,4 +171,4 @@ api.add_resource(User, '{}/user/<uuid>/'.format(prefix))
 api.add_resource(UserActivity, '{}/user/<uuid>/activity/'.format(prefix))
 
 if __name__ == '__main__':
-    app.run(debug=settings.STAKO_DEBUG)
+    app.run(host='0.0.0.0', port=8000, debug=settings.STAKO_DEBUG)

@@ -9,8 +9,6 @@ from stackoverflow import Question
 import data
 from data import StakoUser
 
-#from celery import Celery
-#queue = Celery()
 COLLECTION_AUTH = 'authorizations'
 COLLECTION_USERS = 'users'
 COLLECTION_ACTIVITIES = 'activities'
@@ -56,6 +54,11 @@ class ExperimentMongo:
 			return loads(dumps(a_user))
 		else:
 			return {}
+
+	def get_all(self):
+		collection = self.db[COLLECTION_AUTH]
+		return collection.find({}, {'_id': 0})
+
 
 	@staticmethod
 	def _get_empty_user():

@@ -7,6 +7,25 @@ def get_utc_timestamp():
     return int(now.timestamp())
 
 
+class Experiment:
+    ROLES = ['participant', 'researcher', 'tester']
+    EXPERIMENTS = {
+        "test": ['group_a', 'group_b', 'control']
+    }
+
+    def __init__(self, settings):
+        Experiment.EXPERIMENTS = settings.STAKO_EXPERIMENTS
+
+    @staticmethod
+    def get_empty_user():
+        return {
+            'uuid': str(uuid.uuid4()),
+            'email': '',
+            'roles': [],
+            'experiments': {}
+        }
+
+
 class StakoUser:
     @staticmethod
     def get_empty_user():

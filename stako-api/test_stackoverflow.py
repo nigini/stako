@@ -31,7 +31,7 @@ class TestStackOverflow(unittest.TestCase):
 		experiment = db[mongo.COLLECTION_AUTH]
 		experiment.drop()
 		experiment_mongo = ExperimentMongo(settings)
-		self.TESTER_UUID = experiment_mongo.add_user(TESTER_EMAIL)
+		self.TESTER_UUID = experiment_mongo.add_participant(TESTER_EMAIL)
 		self.api = APIMongo(settings)
 
 	def test_get_question(self):

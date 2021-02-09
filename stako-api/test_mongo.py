@@ -5,7 +5,6 @@ import logging
 from pymongo import MongoClient
 import mongo
 from mongo import ExperimentMongo, APIMongo, UserSummary
-import data
 from data import StakoActivity
 from datetime import datetime, timedelta, timezone
 
@@ -16,6 +15,10 @@ class TestStako(unittest.TestCase):
 		logging.basicConfig(level=logging.INFO)
 		settings.STAKO_TEST = True
 		settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
+		settings.STAKO_EXPERIMENTS = {
+			"test": ['group_a', 'group_b', 'control'],
+			"test2": ['group2_a', 'group2_b', 'control']
+		}
 		client = MongoClient(settings.MONGODB_URL)
 		db = client[settings.MONGODB_NAME_TEST]
 		collection = db[mongo.COLLECTION_AUTH]
@@ -31,13 +34,13 @@ class TestStako(unittest.TestCase):
 
 class TestExperiment(TestStako):
 
-	def test_experiment_user(self):
-		response = self.experiment.get_user('non_participant@gmail.com')
+	def test_experiment_participant(self):
+		response = self.experiment.get_participant('non_participant@gmail.com')
 		self.assertEqual({}, response)
 		# ADD experiment user
-		uuid = self.experiment.add_user('participant@gmail.com')
+		uuid = self.experiment.add_participant('participant@gmail.com')
 		self.assertRegex(uuid.lower(), "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}")
-		response = self.experiment.get_user('participant@gmail.com')
+		response = self.experiment.get_participant('participant@gmail.com')
 		self.assertEqual('participant@gmail.com', response['email'])
 		self.assertEqual(uuid, response['uuid'])
 		self.assertEqual([], response['roles'])
@@ -45,8 +48,128 @@ class TestExperiment(TestStako):
 		stako_user = self.api.get_user(uuid)
 		self.assertEqual(uuid, stako_user['uuid'])
 		# FAIL to add existing user
-		response = self.experiment.add_user('participant@gmail.com')
+		response = self.experiment.add_participant('participant@gmail.com')
 		self.assertIsNone(response)
+
+	def test_experiment_roles(self):
+		p_email = 'participant@gmail.com'
+		p_id = self.experiment.add_participant(p_email)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual(p_id, participant['uuid'])
+		self.assertEqual(p_email, participant['email'])
+		self.assertEqual([], participant['roles'])
+		added = self.experiment.add_participant_role('non_participant@stako.org', 'participant')
+		self.assertFalse(added)
+		added = self.experiment.add_participant_role(p_email, 'not_existing_role')
+		self.assertFalse(added)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual([], participant['roles'])
+		# Valid participant added to a valid role
+		added = self.experiment.add_participant_role(p_email, 'participant')
+		self.assertTrue(added)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual(['participant'], participant['roles'])
+		# Participant is already added... will not add again
+		added = self.experiment.add_participant_role(p_email, 'participant')
+		self.assertTrue(added)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual(['participant'], participant['roles'])
+		# Valid participant added to a second valid role
+		added = self.experiment.add_participant_role(p_email, 'researcher')
+		self.assertTrue(added)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual(['participant', 'researcher'], participant['roles'])
+
+		# Remove roles
+		removed = self.experiment.add_participant_role('non_participant@stako.org', 'researcher')
+		self.assertFalse(removed)
+		removed = self.experiment.add_participant_role(p_email, 'non_existent')
+		self.assertFalse(removed)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual(['participant', 'researcher'], participant['roles'])
+		# Valid participant and existing role
+		removed = self.experiment.remove_participant_role(p_email, 'researcher')
+		self.assertTrue(removed)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual(['participant'], participant['roles'])
+		# That valid role is not present!
+		removed = self.experiment.remove_participant_role(p_email, 'researcher')
+		self.assertTrue(removed)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual(['participant'], participant['roles'])
+		# Remove another one
+		removed = self.experiment.remove_participant_role(p_email, 'participant')
+		self.assertTrue(removed)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual([], participant['roles'])
+		# Remove another one
+		removed = self.experiment.remove_participant_role(p_email, 'participant')
+		self.assertTrue(removed)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual([], participant['roles'])
+
+	def test_experiment_roles(self):
+		p_email = 'participant@gmail.com'
+		p_id = self.experiment.add_participant(p_email)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual(p_id, participant['uuid'])
+		self.assertEqual(p_email, participant['email'])
+		self.assertEqual([], participant['roles'])
+		#Wrong data
+		added = self.experiment.add_participant_experiment('non_participant@stako.org', 'test2', 'control')
+		self.assertFalse(added)
+		added = self.experiment.add_participant_experiment(p_email, 'not_existing_role', 'control')
+		self.assertFalse(added)
+		added = self.experiment.add_participant_experiment(p_email, 'test2', 'not_existing_group')
+		self.assertFalse(added)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual({}, participant['experiments'])
+		# Valid participant added to a valid role
+		added = self.experiment.add_participant_experiment(p_email, 'test2', 'control')
+		self.assertTrue(added)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual('control', participant['experiments']['test2'])
+		added = self.experiment.add_participant_experiment(p_email, 'test2', 'not_existing_group')
+		self.assertFalse(added)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual('control', participant['experiments']['test2'])
+		added = self.experiment.add_participant_experiment(p_email, 'test2', 'group2_a')
+		self.assertTrue(added)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual('group2_a', participant['experiments']['test2'])
+		# A second experiment
+		added = self.experiment.add_participant_experiment(p_email, 'test', 'control')
+		self.assertTrue(added)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual('group2_a', participant['experiments']['test2'])
+		self.assertEqual('control', participant['experiments']['test'])
+		added = self.experiment.add_participant_experiment(p_email, 'test', 'group_b')
+		self.assertTrue(added)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual('group2_a', participant['experiments']['test2'])
+		self.assertEqual('group_b', participant['experiments']['test'])
+
+		#REMOVE
+		removed = self.experiment.remove_participant_experiment('non_participant@stako.org', 'test')
+		self.assertFalse(removed)
+		removed = self.experiment.remove_participant_experiment(p_email, 'test')
+		self.assertTrue(removed)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual('group2_a', participant['experiments']['test2'])
+		self.assertTrue('test' not in participant['experiments'].keys())
+		# Ensures participant in not in this experiment
+		removed = self.experiment.remove_participant_experiment(p_email, 'test')
+		self.assertTrue(removed)
+		participant = self.experiment.get_participant(p_email)
+		self.assertEqual('group2_a', participant['experiments']['test2'])
+		self.assertTrue('test' not in participant['experiments'].keys())
+		removed = self.experiment.remove_participant_experiment(p_email, 'test2')
+		self.assertTrue(removed)
+		participant = self.experiment.get_participant(p_email)
+		self.assertTrue('test2' not in participant['experiments'].keys())
+		self.assertTrue('test' not in participant['experiments'].keys())
+		removed = self.experiment.remove_participant_experiment(p_email, 'test2')
+		self.assertTrue(removed)
 
 
 TESTER_EMAIL = 'user@tester.com'
@@ -67,7 +190,7 @@ class TestActivitySummary(TestStako):
 		self.yesterday = self.today - timedelta(1)
 		self.today0 = self.today.replace(hour=0, minute=0, second=0, microsecond=0)
 		self.yesterday0 = self.today0 - timedelta(1)
-		self.TESTER_UUID = self.experiment.add_user(TESTER_EMAIL)
+		self.TESTER_UUID = self.experiment.add_participant(TESTER_EMAIL)
 		# SHOULD NOT BE INCLUDED IN SUMMARY AS IT IS A CLICK NOT A VISIT
 		test_activity = StakoActivity.get_empty_activity()
 		test_activity['uuid'] = self.TESTER_UUID

@@ -31,9 +31,9 @@ class TestAPI(unittest.TestCase):
 		experiment.drop()
 		experiment_mongo = ExperimentMongo(settings)
 		# ADD TEST USER
-		self.tester_uuid = experiment_mongo.add_user(Auth.TESTER_EMAIL)
+		self.tester_uuid = experiment_mongo.add_participant(Auth.TESTER_EMAIL)
 		self.assertIsNotNone(self.tester_uuid)
-		self.some_other_user_uuid = experiment_mongo.add_user('not_authorized@stako.org')
+		self.some_other_user_uuid = experiment_mongo.add_participant('not_authorized@stako.org')
 		self.assertIsNotNone(self.some_other_user_uuid)
 
 
@@ -79,8 +79,7 @@ class TestAuthAPI(TestAPI):
 			response = client.get(URL + 'auth/?email={}&google_id={}&token={}'.format(Auth.TESTER_EMAIL, '', ''))
 			self.assertEqual(200, response.status_code)
 			auth_token = response.get_json()
-			self.assertEqual()
-			print('TOKEN: {}'.format(auth_token))
+			self.assertEqual(self.tester_uuid, response.get_json()['uuid'])
 			header = {'Authorization': 'Bearer {}'.format(auth_token['access_token'])}
 			response = client.get(URL + 'user/{}/'.format(self.tester_uuid), headers=header)
 			self.assertEqual(200, response.status_code)

@@ -45,7 +45,7 @@ class Auth(APIBase):
         if data and ('email' in data.keys()) and ('google_id' in data.keys()) and ('token' in data.keys()):
             valid = self._validate_token(data.get('email'), data.get('google_id'), data.get('token'))
             if valid:
-                user = self.auth.get_user(data.get('email'))
+                user = self.auth.get_participant(data.get('email'))
                 if 'uuid' in user.keys():
                     # TODO: Should check for existing one first?
                     token = create_access_token(identity=user['uuid'])

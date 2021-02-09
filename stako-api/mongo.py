@@ -7,7 +7,7 @@ import logging
 import copy
 from stackoverflow import Question
 import data
-from data import StakoUser
+from data import StakoUser, Experiment
 
 COLLECTION_AUTH = 'authorizations'
 COLLECTION_USERS = 'users'
@@ -15,19 +15,18 @@ COLLECTION_ACTIVITIES = 'activities'
 
 
 class ExperimentMongo:
-	ROLES = ['participant', 'researcher']
-
 	def __init__(self, settings):
 		self.client = MongoClient(settings.MONGODB_URL)
 		self.db = self.client[settings.MONGODB_NAME]
+		self.experiment = self.db[COLLECTION_AUTH]
+		self.data = Experiment(settings)
 
-	def add_user(self, email):
-		experiment = self.db[COLLECTION_AUTH]
+	def add_participant(self, email):
 		stako_users = self.db[COLLECTION_USERS]
-		if self.get_user(email) == {}:
-			a_user = self._get_empty_user()
+		if self.get_participant(email) == {}:
+			a_user = self.data.get_empty_user()
 			a_user['email'] = email
-			result = experiment.insert_one(a_user)
+			result = self.experiment.insert_one(a_user)
 			saved = type(result.inserted_id) is ObjectId
 			logging.info('[Mongo:SaveExperimentUser] Saved? {}'.format(saved))
 			if saved:
@@ -38,16 +37,71 @@ class ExperimentMongo:
 				if saved2:
 					return a_user['uuid']
 				else:
-					experiment.delete_one({"_id": result.inserted_id})
+					self.experiment.delete_one({"_id": result.inserted_id})
 		return None
 
-	def add_role(self, email, role):
-		pass
+	def _update_participant(self, participant):
+		result = self.experiment.update_one({'email': participant['email']}, {'$set': participant}, upsert=False)
+		if result.modified_count == 1:
+			return True
+		else:
+			return False
 
-	def remove_role(self, email, role):
-		pass
+	# Makes sure the role is part of this participant's roles
+	def add_participant_role(self, email, role):
+		p = self.get_participant(email)
+		result = False
+		if p:
+			if role in self.data.ROLES:
+				if role not in p['roles']:
+					p['roles'].append(role)
+					result = self._update_participant(p)
+				else:
+					result = True
+		return result
 
-	def get_user(self, email):
+	# Makes sure the role is NOT part of this participant's roles
+	def remove_participant_role(self, email, role):
+		p = self.get_participant(email)
+		result = False
+		if p:
+			if role in p['roles']:
+				p['roles'].remove(role)
+				result = self._update_participant(p)
+			else:
+				result = True
+		return result
+
+	# Ensures participant is part of experiment <exp_name> and in group <exp_group>
+	# <exp_name> and <exp_group> HAVE TO be in data.Experiment
+	def add_participant_experiment(self, email, exp_name, exp_group):
+		p = self.get_participant(email)
+		result = False
+		if p:
+			if 'experiments' not in p.keys():
+				p['experiments'] = {}
+			if exp_name in self.data.EXPERIMENTS.keys():
+				if exp_group in self.data.EXPERIMENTS[exp_name]:
+					p['experiments'][exp_name] = exp_group
+					result = self._update_participant(p)
+		return result
+
+	# Ensures participant is NOT part of experiment <exp_name>
+	# <exp_name> HAS TO be in data.Experiment
+	def remove_participant_experiment(self, email, exp_name):
+		p = self.get_participant(email)
+		result = False
+		if p:
+			if 'experiments' not in p.keys():
+				p['experiments'] = {}
+			if exp_name in p['experiments'].keys():
+				p['experiments'].pop(exp_name, None)
+				result = self._update_participant(p)
+			else:
+				result = True
+		return result
+
+	def get_participant(self, email):
 		collection = self.db[COLLECTION_AUTH]
 		a_user = collection.find_one({'email': email}, {'_id': 0})
 		if a_user:
@@ -60,21 +114,11 @@ class ExperimentMongo:
 		return collection.find({}, {'_id': 0})
 
 
-	@staticmethod
-	def _get_empty_user():
-		return {
-			'uuid': str(uuid.uuid4()),
-			'email': '',
-			'roles': []
-		}
-
-
 class APIMongo:
 
 	def __init__(self, settings):
 		self.client = MongoClient(settings.MONGODB_URL)
 		self.db = self.client[settings.MONGODB_NAME]
-		#queue = Celery('mongo', broker=settings.BROKER_URL)
 
 	def save_user(self, user):
 		collection = self.db[COLLECTION_USERS]

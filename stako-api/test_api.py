@@ -5,7 +5,7 @@ import settings
 from pymongo import MongoClient
 import mongo
 from mongo import ExperimentMongo
-from data import StakoActivity, get_utc_timestamp
+from data import StakoActivity, get_utc_timestamp, Experiment
 import json
 
 from api import app, Auth
@@ -14,12 +14,17 @@ ACTIVITY_TYPE_SO_CLICK = StakoActivity.ACTIVITY_TYPE_SO_CLICK
 
 URL = 'http://127.0.0.1:5000/v1/'
 URL_ACTIVITY = URL + 'user/{}/activity/'
+URL_EXPERIMENT = URL + 'user/{}/experiment/'
 
 
 class TestAPI(unittest.TestCase):
 	def setUp(self):
 		settings.STAKO_TEST = True
 		settings.MONGODB_NAME = settings.MONGODB_NAME_TEST
+		settings.STAKO_EXPERIMENTS = {
+			"test": ['group_a', 'group_b', 'control'],
+			"test2": ['group2_a', 'group2_b', 'control']
+		}
 		# CLEAN DB
 		client = MongoClient(settings.MONGODB_URL)
 		db = client[settings.MONGODB_NAME_TEST]
@@ -29,11 +34,11 @@ class TestAPI(unittest.TestCase):
 		activities.drop()
 		experiment = db[mongo.COLLECTION_AUTH]
 		experiment.drop()
-		experiment_mongo = ExperimentMongo(settings)
+		self.experiment_mongo = ExperimentMongo(settings)
 		# ADD TEST USER
-		self.tester_uuid = experiment_mongo.add_participant(Auth.TESTER_EMAIL)
+		self.tester_uuid = self.experiment_mongo.add_participant(Auth.TESTER_EMAIL)
 		self.assertIsNotNone(self.tester_uuid)
-		self.some_other_user_uuid = experiment_mongo.add_participant('not_authorized@stako.org')
+		self.some_other_user_uuid = self.experiment_mongo.add_participant('not_authorized@stako.org')
 		self.assertIsNotNone(self.some_other_user_uuid)
 
 
@@ -220,3 +225,41 @@ class TestActivityAPI(TestAPI):
 			response = client.post(URL_ACTIVITY.format(self.tester_uuid), data=json.dumps(another_activity),
 								   headers=header, content_type='application/json')
 			self.assertEqual(200, response.status_code)
+
+
+class TestExperimentAPI(TestAPI):
+
+	def setUp(self):
+		super(TestExperimentAPI, self).setUp()
+		added = self.experiment_mongo.add_participant_experiment(Auth.TESTER_EMAIL, 'test', 'control')
+		self.assertTrue(added)
+		added = self.experiment_mongo.add_participant_experiment(Auth.TESTER_EMAIL, 'test2', 'group2_a')
+		self.assertTrue(added)
+		self.exp_name_test_hash = Experiment._hash_string('test')
+		self.exp_group_test_hash = Experiment._hash_string('control')
+		self.exp_name_test2_hash = Experiment._hash_string('test2')
+		self.exp_group_test2_hash = Experiment._hash_string('group2_a')
+
+	def test_experiments(self):
+		with app.test_client() as client:
+			response = client.get(URL + 'auth/?email={}&google_id={}&token={}'.format(Auth.TESTER_EMAIL, '', ''))
+			self.assertEqual(200, response.status_code)
+			auth_token = response.get_json()
+			header = {'Authorization': 'Bearer {}'.format(auth_token['access_token'])}
+			response = client.get(URL + 'user/{}/'.format(self.tester_uuid), headers=header)
+			self.assertEqual(200, response.status_code)
+			# GET NON-EXISTENT PARTICIPANT
+			response = client.get(URL_EXPERIMENT.format('NOT_VALID_USERID'), headers=header,
+								  content_type='application/json')
+			self.assertEqual(403, response.status_code)
+			# VALID USER
+			response = client.get(URL_EXPERIMENT.format(self.tester_uuid), headers=header,
+								  content_type='application/json')
+			self.assertEqual(200, response.status_code)
+			u_experiments = response.get_json()
+			self.assertEqual(self.tester_uuid, u_experiments['uuid'])
+			self.assertEqual(2, len(u_experiments['experiments']))
+			self.assertTrue(self.exp_name_test_hash in u_experiments['experiments'].keys())
+			self.assertTrue(self.exp_name_test2_hash in u_experiments['experiments'].keys())
+			self.assertEqual(self.exp_group_test_hash, u_experiments['experiments'][self.exp_name_test_hash])
+			self.assertEqual(self.exp_group_test2_hash, u_experiments['experiments'][self.exp_name_test2_hash])

@@ -5,7 +5,7 @@ import flask_restful
 from flask_restful import Resource, Api
 import logging
 from mongo import APIMongo, ExperimentMongo
-from data import StakoActivity
+from data import StakoActivity, Experiment
 from urllib.parse import urlparse
 from functools import wraps
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, verify_jwt_in_request, decode_token
@@ -33,7 +33,7 @@ def authorize_user(func):
 class APIBase(Resource):
     def __init__(self):
         self.data_source = APIMongo(settings)
-        self.auth = ExperimentMongo(settings)
+        self.experiment = ExperimentMongo(settings)
 
 
 class Auth(APIBase):
@@ -45,7 +45,7 @@ class Auth(APIBase):
         if data and ('email' in data.keys()) and ('google_id' in data.keys()) and ('token' in data.keys()):
             valid = self._validate_token(data.get('email'), data.get('google_id'), data.get('token'))
             if valid:
-                user = self.auth.get_participant(data.get('email'))
+                user = self.experiment.get_participant(data.get('email'))
                 if 'uuid' in user.keys():
                     # TODO: Should check for existing one first?
                     token = create_access_token(identity=user['uuid'])
@@ -104,6 +104,26 @@ class User(APIBase):
                 return {'MESSAGE': '500: Could not update user {}!'.format(uuid)}, 500
         else:
             return {'MESSAGE': '404: User {} not found!'.format(uuid)}, 404
+
+
+class UserExperiment(APIBase):
+    method_decorators = [authorize_user]
+
+    def get(self, uuid):
+        participant = self.experiment.get_participant(uuid, 'uuid')
+        if participant:
+            p_exp = {'uuid': uuid}
+            if 'experiments' in participant.keys():
+                p_exp['experiments'] = Experiment.get_experiments_hash(participant['experiments'])
+            else:
+                p_exp['experiments'] = {}
+            return p_exp
+        else:
+            msg = '404: User {} not found!'.format(uuid)
+            err = 404
+
+        logging.error('[API:UserExperiment] ERROR: {}'.format(msg))
+        return {'MESSAGE': msg}, err
 
 
 class UserActivity(APIBase):
@@ -169,6 +189,7 @@ prefix = '/v1'
 api.add_resource(Auth, '{}/auth/'.format(prefix))
 api.add_resource(User, '{}/user/<uuid>/'.format(prefix))
 api.add_resource(UserActivity, '{}/user/<uuid>/activity/'.format(prefix))
+api.add_resource(UserExperiment, '{}/user/<uuid>/experiment/'.format(prefix))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=settings.STAKO_DEBUG)

@@ -44,12 +44,22 @@ class TestExperiment(TestStako):
 		self.assertEqual('participant@gmail.com', response['email'])
 		self.assertEqual(uuid, response['uuid'])
 		self.assertEqual([], response['roles'])
+		self.assertEqual({}, response['experiments'])
+
+		# GET by UUID
+		response = self.experiment.get_participant(uuid, 'uuid')
+		self.assertEqual('participant@gmail.com', response['email'])
+		self.assertEqual(uuid, response['uuid'])
+		self.assertEqual([], response['roles'])
+		self.assertEqual({}, response['experiments'])
+
 		# CREATED associated STAKO user (same UUID)
 		stako_user = self.api.get_user(uuid)
 		self.assertEqual(uuid, stako_user['uuid'])
 		# FAIL to add existing user
 		response = self.experiment.add_participant('participant@gmail.com')
 		self.assertIsNone(response)
+
 
 	def test_experiment_roles(self):
 		p_email = 'participant@gmail.com'

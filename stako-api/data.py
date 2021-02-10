@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime, timezone
+import hashlib
 
 
 def get_utc_timestamp():
@@ -15,6 +16,18 @@ class Experiment:
 
     def __init__(self, settings):
         Experiment.EXPERIMENTS = settings.STAKO_EXPERIMENTS
+
+    @staticmethod
+    def _hash_string(str):
+        return hashlib.sha256(str.encode()).hexdigest()
+
+    @staticmethod
+    def get_experiments_hash(experiments):
+        result = {}
+        for exp in experiments.keys():
+            exp_hash = Experiment._hash_string(exp)
+            result[exp_hash] = Experiment._hash_string(experiments[exp])
+        return result
 
     @staticmethod
     def get_empty_user():

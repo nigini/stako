@@ -101,9 +101,9 @@ class ExperimentMongo:
 				result = True
 		return result
 
-	def get_participant(self, email):
+	def get_participant(self, by_value, by_key='email'):
 		collection = self.db[COLLECTION_AUTH]
-		a_user = collection.find_one({'email': email}, {'_id': 0})
+		a_user = collection.find_one({by_key: by_value}, {'_id': 0})
 		if a_user:
 			return loads(dumps(a_user))
 		else:

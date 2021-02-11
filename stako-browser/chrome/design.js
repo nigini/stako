@@ -3,7 +3,7 @@ window.addEventListener("load", init);
 //Testing whether the branches merged.
 
 //Hard coded value which determines which design intervention is used.
-var type = 2;
+var type = 1;
 
 //Constant that determines how long the mouse should hover over an element before it is considered an interaction.
 const DELAY = 1000;
@@ -31,8 +31,13 @@ function insertBanner() {
   var parent = mainContent.parentNode;
   var bannerWrapper = document.createElement("div");
   var banner = document.createElement("div");
+  var dismiss = document.createElement("button");
+  dismiss.classList.add("dismiss");
+  dismiss.textContent = "close";
+  dismiss.addEventListener("click", dismissIntervention);
   banner.id = "Crew";
   bannerWrapper.id = "bannerWrapper";
+  bannerWrapper.appendChild(dismiss);
   bannerWrapper.appendChild(banner);
   parent.insertBefore(bannerWrapper, mainContent);
   banner.classList.add("scrollmenu");
@@ -42,12 +47,30 @@ function insertBanner() {
   return banner;
 }
 
+//Closes the intervention and reverts the page back to its original state.
+function dismissIntervention() {
+  var tags = document.querySelectorAll(".popup-hidden");
+  console.log(tags);
+  for(let element of tags) {
+    element.classList.remove("popup-hidden");
+  }
+  var intervention = document.getElementById("bannerWrapper");
+  intervention.classList.add("popup-hidden");
+  var nameAndDateTags = document.querySelectorAll(".nameAndDate");
+  for(let info of nameAndDateTags) {
+    info.classList.add("popup-hidden");
+  }
+}
+
 //Depending on whether design one or two has been hardcoded, either populates the crew with the technology tags or the pictures of everyone who
 //has contributed to the page.
 function insertDesign(banner) {
   if(type === 1) {
     var tags = document.querySelectorAll(".question .post-tag");
-    for(let tag of tags) {
+    for(let element of tags) {
+      var tag = element.cloneNode(true);
+      element.parentElement.classList.add("popup-hidden");
+      element.parentElement.classList.remove("grid");
       banner.appendChild(tag);
       getTimeIn(tag);
       getTimeOut(tag);
@@ -66,11 +89,18 @@ function insertDesign(banner) {
       //Removes gray background
       element.parentElement.classList.remove("owner");
       var nameAndDate = document.createElement("div");
+      nameAndDate.classList.add("nameAndDate");
       if(name) {
-        nameAndDate.appendChild(name);
+        var copyName = document.createElement("div");
+        copyName.textContent = name.textContent
+        nameAndDate.appendChild(copyName);
+        name.classList.add("popup-hidden");
       }
       if(date) {
-        nameAndDate.appendChild(date);
+        var copyDate = document.createElement("div");
+        copyDate.textContent = date.textContent
+        nameAndDate.appendChild(copyDate);
+        date.classList.add("popup-hidden");
       }
       element.parentElement.appendChild(nameAndDate);
       if(image) {

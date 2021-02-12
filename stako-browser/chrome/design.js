@@ -148,9 +148,20 @@ function getTimeOut(element) {
     // check whether timeIn is null and whether the difference is greater than one second.
     if(timeIn && totalTime >= DELAY) {
       //If the condition is met, record the event by sending a message to background.js
-      chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:mouse", url: window.location.href, time: totalTime}, function(response){
-        console.log(response.testType + " " + response.testURL + " " + response.testTime);
-      });
+      if(element.classList.contains("post-tag")) {
+        var tag_link = "https://stackoverflow.com/" + element.href;
+        chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:mouse", url: window.location.href, time: totalTime, ele: tag_link}, function(response){
+          console.log(response.testType + " " + response.testURL + " " + response.testTime);
+        });
+      } else if(element.classList.contains("user-info")) {
+        var tag_link = "https://stackoverflow.com/" + element.href;
+        var linkElement = element.querySelector(".user-gravatar32 > a");
+        var link = linkElement.href;
+        var tag_link = "https://stackoverflow.com/" + link;
+        chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:mouse", url: window.location.href, time: totalTime, ele: tag_link}, function(response){
+          console.log(response.testType + " " + response.testURL + " " + response.testTime);
+        });
+      }
     }
     timeIn = null;
   });
@@ -158,9 +169,21 @@ function getTimeOut(element) {
 
 function trackClick(element) {
   //Tracks whether one of the elements of interest has been clicked on.
-  element.addEventListener('click', function (e) {
-    chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: window.location.href}, function(response) {
-      console.log(response.testType + " " + response.testURL);
+  if(element.classList.contains("post-tag")){
+    element.addEventListener('click', function (e) {
+      var tag_link = "https://stackoverflow.com/" + element.href;
+      chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: window.location.href, ele: tag_link}, function(response) {
+        console.log(response.testType + " " + response.testURL);
+      });
     });
-  });
+  } else if(element.classList.contains("user-info")){
+    var linkElement = element.querySelector(".user-gravatar32 > a");
+    var link = linkElement.href;
+    element.addEventListener('click', function (e) {
+      var tag_link = "https://stackoverflow.com/" + link;
+      chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: window.location.href, ele:tag_link}, function(response) {
+        console.log(response.testType + " " + response.testURL);
+      });
+    });
+  }
 }

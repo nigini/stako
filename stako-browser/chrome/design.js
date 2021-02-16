@@ -35,6 +35,7 @@ function insertBanner() {
   dismiss.classList.add("dismiss");
   dismiss.textContent = "X";
   dismiss.addEventListener("click", dismissIntervention);
+  trackDismiss(dismiss);
   banner.id = "Crew";
   bannerWrapper.id = "bannerWrapper";
   bannerWrapper.appendChild(dismiss);
@@ -216,4 +217,13 @@ function trackClick(element) {
       });
     });
   }
+}
+
+function trackDismiss(element) {
+  //Tracks whether the dismiss button has been clicked on.
+  element.addEventListener('click', function (e) {
+    chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: window.location.href, ele:"Dismiss-Click"}, function(response) {
+      console.log(response.testType + " " + response.testURL);
+    });
+  });
 }

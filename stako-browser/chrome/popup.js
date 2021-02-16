@@ -143,34 +143,45 @@ function trackClick(element) {
 function trackMottoAndNickname() {
   console.log("hello");
   document.getElementById("nickname").addEventListener("input", function() {
-    console.log("input event fired");
-    //updateNameAndMotto();
+    var updatedNickname = document.getElementById("nickname").textContent;
+    var update = {
+      nickname: updatedNickname,
+    }
+    updateStakoProfile(update);
   }, false);
   document.getElementById("motto").addEventListener("input", function() {
     console.log("input event fired");
+    var oldMotto = document.getElementById("motto").textContent;
+    var update = {
+      motto: oldMotto,
+    }
+    updateStakoProfile(update);
   }, false);
 }
 
-function updateNameAndMotto() {
-  const request = new Request(auth_url, {method: 'PUT',});
-    return fetch(request)
-        .then(response => {
-            if (response.status === 200) {
-                return response.json()
-                    .then( stakoToken => {
-                        console.log('AUTH TOKEN: ' + JSON.stringify(stakoToken));
-                        return stakoToken;
-                    });
-            } else if (response.status === 401) {
-                return null;
-            } else {
-                response.text()
-                    .then(text => {
-                        throw Error('Could not authenticate stako user: HTTP_STATUS ' + response.status + ' + ' + text)
-                    });
-            }
-        })
-        .catch(error => {
-            console.error(error);
-        });
+const STAKO_ACTIVITY_URL = STAKO_API_URL + 'user/{}/activity/';
+
+function updateStakoProfile(activity_body) {
+    chrome.storage.local.get({'STAKO_USER': null}, async function (user) {
+        let uuid = user.STAKO_USER.uuid;
+        if(uuid) {
+            const search_url = STAKO_USER_URL + uuid + '/';
+            var token = await getValidToken(true);
+            var key = token["access_token"];
+            var auth_key = "Bearer " + key;
+            const request = new Request(search_url.replace('{}', uuid),
+                {method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': auth_key}, body: JSON.stringify(activity_body)});
+            fetch(request)
+                .then(response => {
+                    if (response.status === 200) {
+                        console.log('SYNCED: ' + JSON.stringify(activity_body));
+                        updateStakoUser(uuid);
+                    } else {
+                        console.log('COULD NOT SYNC: ' + JSON.stringify(activity_body));
+                    }
+                });
+        } else {
+            console.log('CANNOT SYNC ACTIVITY WITHOUT A USER_ID! TRY TO LOGIN AGAIN!');
+        }
+    });
 }

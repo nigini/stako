@@ -159,7 +159,7 @@ function trackMottoAndNickname() {
   }, false);
 }
 
-const STAKO_ACTIVITY_URL = STAKO_API_URL + 'user/{}/activity/';
+//const STAKO_ACTIVITY_URL = STAKO_API_URL + 'user/{}/activity/';
 
 function updateStakoProfile(activity_body) {
     chrome.storage.local.get({'STAKO_USER': null}, async function (user) {

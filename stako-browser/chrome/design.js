@@ -1,7 +1,5 @@
 window.addEventListener("load", init);
 
-//Testing whether the branches merged.
-
 //Hard coded value which determines which design intervention is used.
 var type = 2;
 
@@ -18,10 +16,21 @@ const pageURLRegex = new RegExp('https://*.stackoverflow.com/questions/[0-9]+/*'
 function init() {
   let currURL = "" + window.location.href;
   if((currURL).match(pageURLRegex)){
-    var banner = insertBanner();
-    insertDesign(banner);
+    chrome.runtime.sendMessage({extensiondId: "oauth.js", type: "setup"}, function(response){
+    });
   }
 }
+
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+      if(request.type == "setupResponse") {
+          experiments = request.setup.experiments;
+          var banner = insertBanner();
+          insertDesign(banner, experiments);
+          sendResponse();
+      }
+  }
+);
 
 /*
 Creates a banner right above the answer portion of the page. Note that all styling for design.js is contained within design.css
@@ -65,7 +74,8 @@ function dismissIntervention() {
 
 //Depending on whether design one or two has been hardcoded, either populates the crew with the technology tags or the pictures of everyone who
 //has contributed to the page.
-function insertDesign(banner) {
+function insertDesign(banner, experiments) {
+  console.log(experiments);
   if(type === 1) {
     var tags = document.querySelectorAll(".question .post-tag");
     for(let element of tags) {

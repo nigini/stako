@@ -3,7 +3,7 @@ window.addEventListener("load", init);
 //Testing whether the branches merged.
 
 //Hard coded value which determines which design intervention is used.
-var type = 1;
+var type = 2;
 
 //Constant that determines how long the mouse should hover over an element before it is considered an interaction.
 const DELAY = 1000;
@@ -33,7 +33,7 @@ function insertBanner() {
   var banner = document.createElement("div");
   var dismiss = document.createElement("button");
   dismiss.classList.add("dismiss");
-  dismiss.textContent = "close";
+  dismiss.textContent = "X";
   dismiss.addEventListener("click", dismissIntervention);
   banner.id = "Crew";
   bannerWrapper.id = "bannerWrapper";

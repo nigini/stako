@@ -4,6 +4,8 @@ function init() {
   displayVisit();
   addButtonFunctionality();
   loadCarosel();
+  trackCarouselClick();
+  trackMottoAndNickname();
 }
 
 // update popup display with latest visit
@@ -113,13 +115,73 @@ function createActivityDiv(final_tag, final_pageVisits) {
   return weekly_section;
 }
 
+function trackCarouselClick() {
+  var carouselButtonPrev = document.querySelector("#carouselContent .carousel-control-prev");
+  var carouselButtonNext = document.querySelector("#carouselContent .carousel-control-next");
+  carouselButtonPrev.addEventListener('click', function (e) {
+    var link = "https://www.stako.org/chrome-extension";
+    chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: link, ele: "Carousel-Left-Click"}, function(response) {
+    });
+  });
+  carouselButtonNext.addEventListener('click', function (e) {
+    var link = "https://www.stako.org/chrome-extension";
+    chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: link, ele: "Carousel-Right-Click"}, function(response) {
+    });
+  });
+}
+
 function trackClick(element) {
   //Tracks whether one of the elements of interest has been clicked on.
   element.addEventListener('click', function (e) {
     var link = "https://www.stako.org/chrome-extension";
-    chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: element.href, ele: link}, function(response) {
-      console.log(response.testType + " " + response.testURL);
+    chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: link, ele: element.href}, function(response) {
     });
     chrome.tabs.create({url: element.href, active: true});
   });
+}
+
+function trackMottoAndNickname() {
+  console.log("hello");
+  document.getElementById("nickname").addEventListener("input", function() {
+    var updatedNickname = document.getElementById("nickname").textContent;
+    var update = {
+      nickname: updatedNickname,
+    }
+    updateStakoProfile(update);
+  }, false);
+  document.getElementById("motto").addEventListener("input", function() {
+    console.log("input event fired");
+    var oldMotto = document.getElementById("motto").textContent;
+    var update = {
+      motto: oldMotto,
+    }
+    updateStakoProfile(update);
+  }, false);
+}
+
+//const STAKO_ACTIVITY_URL = STAKO_API_URL + 'user/{}/activity/';
+
+function updateStakoProfile(activity_body) {
+    chrome.storage.local.get({'STAKO_USER': null}, async function (user) {
+        let uuid = user.STAKO_USER.uuid;
+        if(uuid) {
+            const search_url = STAKO_USER_URL + uuid + '/';
+            var token = await getValidToken(true);
+            var key = token["access_token"];
+            var auth_key = "Bearer " + key;
+            const request = new Request(search_url.replace('{}', uuid),
+                {method: 'PUT', headers: {'Content-Type': 'application/json', 'Authorization': auth_key}, body: JSON.stringify(activity_body)});
+            fetch(request)
+                .then(response => {
+                    if (response.status === 200) {
+                        console.log('SYNCED: ' + JSON.stringify(activity_body));
+                        updateStakoUser(uuid);
+                    } else {
+                        console.log('COULD NOT SYNC: ' + JSON.stringify(activity_body));
+                    }
+                });
+        } else {
+            console.log('CANNOT SYNC ACTIVITY WITHOUT A USER_ID! TRY TO LOGIN AGAIN!');
+        }
+    });
 }

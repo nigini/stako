@@ -1,7 +1,9 @@
 window.addEventListener("load", init);
 
-//Testing whether the branches merged.
 
+var key = ['a6af8190add5594fa190bb4d897aa25e84d5bbd1e679473492050a587bef0d18'];
+
+var value = ['4232fb2cf8cad31f4ba975804750335d260ba197ce2363024627842bbf585836', '428f154b3e18bfe54659e0ef96566193bbe64a8a4e837cf22cea9b992ce7f377', '0fcd568a5cb9bdb4677b69354b11ee415af8f784519cff3da49a26f84eaee7f2'];
 //Hard coded value which determines which design intervention is used.
 var type = 2;
 
@@ -18,23 +20,48 @@ const pageURLRegex = new RegExp('https://*.stackoverflow.com/questions/[0-9]+/*'
 function init() {
   let currURL = "" + window.location.href;
   if((currURL).match(pageURLRegex)){
-    var banner = insertBanner();
-    insertDesign(banner);
+    chrome.runtime.sendMessage({extensiondId: "oauth.js", type: "setup"}, function(response){
+    });
   }
 }
+
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+      if(request.type == "setupResponse") {
+          experiments = request.setup.experiments;
+          var banner = insertBanner(experiments);
+          insertDesign(banner);
+          sendResponse();
+      }
+  }
+);
 
 /*
 Creates a banner right above the answer portion of the page. Note that all styling for design.js is contained within design.css
 */
-function insertBanner() {
+function insertBanner(experiments) {
+  var test = key[0];
+  type = experiments[test];
+  if(!type) {
+    type = value[getRandomInt(3)];
+  }
+  console.log(type);
   var mainContent = document.getElementById("mainbar");
   var parent = mainContent.parentNode;
   var bannerWrapper = document.createElement("div");
   var banner = document.createElement("div");
+  var dismiss = document.createElement("button");
+  dismiss.classList.add("dismiss");
+  dismiss.textContent = "X";
+  dismiss.addEventListener("click", dismissIntervention);
+  trackDismiss(dismiss);
   banner.id = "Crew";
   bannerWrapper.id = "bannerWrapper";
+  bannerWrapper.appendChild(dismiss);
   bannerWrapper.appendChild(banner);
-  parent.insertBefore(bannerWrapper, mainContent);
+  if(type === value[0] || type === value[1]) {
+    parent.insertBefore(bannerWrapper, mainContent);
+  }
   banner.classList.add("scrollmenu");
   var crewWord = document.createElement("p");
   crewWord.textContent = "Crew";
@@ -42,18 +69,35 @@ function insertBanner() {
   return banner;
 }
 
+//Closes the intervention and reverts the page back to its original state.
+function dismissIntervention() {
+  var tags = document.querySelectorAll(".popup-hidden");
+  for(let element of tags) {
+    element.classList.remove("popup-hidden");
+  }
+  var intervention = document.getElementById("bannerWrapper");
+  intervention.classList.add("popup-hidden");
+  var nameAndDateTags = document.querySelectorAll(".nameAndDate");
+  for(let info of nameAndDateTags) {
+    info.classList.add("popup-hidden");
+  }
+}
+
 //Depending on whether design one or two has been hardcoded, either populates the crew with the technology tags or the pictures of everyone who
 //has contributed to the page.
 function insertDesign(banner) {
-  if(type === 1) {
+  if(type === value[0]) {
     var tags = document.querySelectorAll(".question .post-tag");
-    for(let tag of tags) {
+    for(let element of tags) {
+      var tag = element.cloneNode(true);
+      element.parentElement.classList.add("popup-hidden");
+      element.parentElement.classList.remove("grid");
       banner.appendChild(tag);
       getTimeIn(tag);
       getTimeOut(tag);
       trackClick(tag);
     }
-  } else if (type === 2) {
+  } else if (type === value[1]) {
     var tags = document.querySelectorAll(".user-info");
     //Set used to prevent a single contributor from appearing multiple times in the crew.
     var contributors = new Set();
@@ -66,11 +110,18 @@ function insertDesign(banner) {
       //Removes gray background
       element.parentElement.classList.remove("owner");
       var nameAndDate = document.createElement("div");
+      nameAndDate.classList.add("nameAndDate");
       if(name) {
-        nameAndDate.appendChild(name);
+        var copyName = document.createElement("div");
+        copyName.textContent = name.textContent
+        nameAndDate.appendChild(copyName);
+        name.classList.add("popup-hidden");
       }
       if(date) {
-        nameAndDate.appendChild(date);
+        var copyDate = document.createElement("div");
+        copyDate.textContent = date.textContent
+        nameAndDate.appendChild(copyDate);
+        date.classList.add("popup-hidden");
       }
       element.parentElement.appendChild(nameAndDate);
       if(image) {
@@ -113,6 +164,13 @@ function insertDesign(banner) {
       }
     }
   }
+}
+
+/*
+Helper utility function to generate a random integer.
+*/
+function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
 }
 
 /*
@@ -186,4 +244,13 @@ function trackClick(element) {
       });
     });
   }
+}
+
+function trackDismiss(element) {
+  //Tracks whether the dismiss button has been clicked on.
+  element.addEventListener('click', function (e) {
+    chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: window.location.href, ele:"Dismiss-Click"}, function(response) {
+      console.log(response.testType + " " + response.testURL);
+    });
+  });
 }

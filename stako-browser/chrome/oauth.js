@@ -148,3 +148,41 @@ function updateStakoUser(uuid) {
         }
     });
 }
+
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        if(request.type == "setup") {
+            getSetup();
+            sendResponse();
+        }
+    }
+);
+
+function getSetup() {
+    var experimentType;
+    chrome.storage.local.get({'STAKO_USER': null}, async function (user) {
+      let uuid = user.STAKO_USER.uuid;
+      if(uuid) {
+          const search_url = STAKO_USER_URL + uuid + '/experiment/';
+          var token = await getValidToken(true);
+          var key = token["access_token"];
+          var auth_key = "Bearer " + key;
+          const request = new Request(search_url.replace('{}', uuid),
+              {method: 'GET', headers: {'Content-Type': 'application/json', 'Authorization': auth_key}});
+          experimentType = await fetch(request)
+              .then(response => {
+                  if(response.status === 200) {
+                    return response.json();
+                  } else {
+                      console.log('COULD NOT SYNC: ' + JSON.stringify(response));
+                  }
+              });
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+                chrome.tabs.sendMessage(tabs[0].id, {type: "setupResponse", setup: experimentType}, function(response) {});
+            });
+      } else {
+          console.log('CANNOT SYNC ACTIVITY WITHOUT A USER_ID! TRY TO LOGIN AGAIN!');
+      }
+    });
+    console.log(experimentType);
+}

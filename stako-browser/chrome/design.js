@@ -20,26 +20,19 @@ const pageURLRegex = new RegExp('https://*.stackoverflow.com/questions/[0-9]+/*'
 function init() {
   let currURL = "" + window.location.href;
   if((currURL).match(pageURLRegex)){
-    chrome.runtime.sendMessage({extensiondId: "oauth.js", type: "setup"}, function(response){
-    });
+   chrome.storage.local.get({'EXPERIMENT': null}, async function (experiment) {
+    console.log(experiment);
+    var banner = insertBanner(experiment['EXPERIMENT']['experiments']);
+    insertDesign(banner);
+  });
   }
 }
-
-chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-      if(request.type == "setupResponse") {
-          experiments = request.setup.experiments;
-          var banner = insertBanner(experiments);
-          insertDesign(banner);
-          sendResponse();
-      }
-  }
-);
 
 /*
 Creates a banner right above the answer portion of the page. Note that all styling for design.js is contained within design.css
 */
 function insertBanner(experiments) {
+  console.log(experiments);
   var test = key[0];
   type = experiments[test];
   if(!type) {

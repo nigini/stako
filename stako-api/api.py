@@ -62,7 +62,7 @@ class Auth(APIBase):
     def _validate_token(self, email, google_id, oauth_token):
         logging.info('[API:AUTHORIZE] EMAIL {}, GID {}, and TOKEN {}.'.format(email, google_id, oauth_token))
         if settings.STAKO_TEST:
-            return email == Auth.TESTER_EMAIL
+            return email.lower() == Auth.TESTER_EMAIL
         else:
             r_url = Auth.GOOGLE_OAUTH_INFO.format(oauth_token)
             response = requests.get(r_url)

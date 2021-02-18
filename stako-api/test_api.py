@@ -63,6 +63,14 @@ class TestAuthAPI(TestAPI):
 			# This can fail by a second if the server call is at the moment where the second changes (1/1000 chance)?
 			self.assertTrue(auth_token['expiration'] > 0)
 			self.assertTrue(auth_token['expiration'] == now+delta or auth_token['expiration'] == now+delta-1)
+			# TEST case non-sensitive email
+			response = client.get(URL + 'auth/?email={}&google_id={}&token={}'.format(Auth.TESTER_EMAIL.upper(), '', ''))
+			self.assertEqual(200, response.status_code)
+			auth_token = response.get_json()
+			self.assertEqual(self.tester_uuid, auth_token['uuid'])
+			self.assertRegex(auth_token['access_token'], '[a-zA-Z0-9-_]+?.[a-zA-Z0-9-_]+?.([a-zA-Z0-9-_]+)[/a-zA-Z0-9-_]+?$')
+			self.assertTrue(isinstance(auth_token['expiration'], int))
+
 
 			# TODO: CREATE VALID EMAIL, GOOGLE_ID, AND TOKEN
 			# TEST GET_USER

@@ -21,7 +21,6 @@ function init() {
   let currURL = "" + window.location.href;
   if((currURL).match(pageURLRegex)){
    chrome.storage.local.get({'EXPERIMENT': null}, async function (experiment) {
-    console.log(experiment);
     var banner = insertBanner(experiment['EXPERIMENT']['experiments']);
     insertDesign(banner);
   });
@@ -32,13 +31,11 @@ function init() {
 Creates a banner right above the answer portion of the page. Note that all styling for design.js is contained within design.css
 */
 function insertBanner(experiments) {
-  console.log(experiments);
   var test = key[0];
   type = experiments[test];
   if(!type) {
     type = value[getRandomInt(3)];
   }
-  console.log(type);
   var mainContent = document.getElementById("mainbar");
   var parent = mainContent.parentNode;
   var bannerWrapper = document.createElement("div");

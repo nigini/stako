@@ -127,6 +127,7 @@ function updateStakoUser(uuid) {
                             .then( stakoUser => {
                                 console.log('FOUND USER: ' + JSON.stringify(stakoUser));
                                 chrome.storage.local.set({'STAKO_USER': stakoUser});
+                                getSetup();
                                 return stakoUser;
                             });
                     } else if (response.status === 404) {
@@ -149,15 +150,6 @@ function updateStakoUser(uuid) {
     });
 }
 
-chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
-        if(request.type == "setup") {
-            getSetup();
-            sendResponse();
-        }
-    }
-);
-
 function getSetup() {
     var experimentType;
     chrome.storage.local.get({'STAKO_USER': null}, async function (user) {
@@ -177,9 +169,15 @@ function getSetup() {
                       console.log('COULD NOT SYNC: ' + JSON.stringify(response));
                   }
               });
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-                chrome.tabs.sendMessage(tabs[0].id, {type: "setupResponse", setup: experimentType}, function(response) {});
-            });
+            chrome.storage.local.set({'EXPERIMENT' : experimentType});
+            //Testing for different kinds of experiments.
+            /*
+            var test = {
+                experiments: {'a6af8190add5594fa190bb4d897aa25e84d5bbd1e679473492050a587bef0d18': '0fcd568a5cb9bdb4677b69354b11ee415af8f784519cff3da49a26f84eaee7f2'},
+                uuid: uuid
+                };
+            chrome.storage.local.set({'EXPERIMENT': test});
+            */
       } else {
           console.log('CANNOT SYNC ACTIVITY WITHOUT A USER_ID! TRY TO LOGIN AGAIN!');
       }

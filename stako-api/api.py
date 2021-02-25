@@ -72,7 +72,7 @@ class Auth(APIBase):
                 if 'error' not in data.keys():
                     app = data['aud']
                     user = data['sub']
-                    if app == settings.STAKO_OAUTH_ID and user == google_id:
+                    if app in settings.STAKO_OAUTH_ID and user == google_id:
                         return True
         return False
 

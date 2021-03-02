@@ -12,6 +12,7 @@ from data import StakoUser, Experiment
 COLLECTION_AUTH = 'authorizations'
 COLLECTION_USERS = 'users'
 COLLECTION_ACTIVITIES = 'activities'
+COLLECTION_NOTIFICATIONS = 'notifications'
 
 
 class ExperimentMongo:
@@ -149,11 +150,20 @@ class APIMongo:
 
 	def get_activities(self, user_uuid):
 		collection = self.db[COLLECTION_ACTIVITIES]
-		a_user = collection.find_one({'uuid': user_uuid}, {'_id': 0})
-		if a_user:
-			return loads(dumps(a_user))
+		act = collection.find_one({'uuid': user_uuid}, {'_id': 0})
+		if act:
+			return loads(dumps(act))
 		else:
 			return {}
+
+	def get_notifications(self, user_uuid):
+		collection = self.db[COLLECTION_NOTIFICATIONS]
+		notifications = collection.find({'uuid': user_uuid, 'delivered': None}, {'_id': 0})
+		to_return = []
+		if notifications:
+			pass
+		return to_return
+
 
 
 class UserSummary:

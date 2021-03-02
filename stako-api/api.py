@@ -177,6 +177,16 @@ class UserActivity(APIBase):
         return None
 
 
+class UserNotification(APIBase):
+    method_decorators = [authorize_user]
+
+    def get(self, uuid):
+        return {
+            'uuid': uuid,
+            'notifications': self.data_source.get_notifications(uuid)
+        }
+
+
 logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 api = Api(app)
@@ -190,6 +200,7 @@ api.add_resource(Auth, '{}/auth/'.format(prefix))
 api.add_resource(User, '{}/user/<uuid>/'.format(prefix))
 api.add_resource(UserActivity, '{}/user/<uuid>/activity/'.format(prefix))
 api.add_resource(UserExperiment, '{}/user/<uuid>/experiment/'.format(prefix))
+api.add_resource(UserNotification, '{}/user/<uuid>/notification/'.format(prefix))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=settings.STAKO_DEBUG)

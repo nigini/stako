@@ -91,6 +91,20 @@ class StakoActivity:
         }
 
 
+class StakoNotification:
+
+    NOTIFICATION_TYPE = ['info', 'alert', 'error']
+
+    @staticmethod
+    def get_empty_activity():
+        return {
+            'uuid': '',
+            'type': '',
+            'created': get_utc_timestamp(),
+            'delivered': None
+        }
+
+
 class StakoToken:
     TEST_KEY = 'ABCD_1234567890'
 

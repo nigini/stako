@@ -4,6 +4,8 @@ Our goal is to add to your experience as an Stack Overflow user while supporting
 
 STAKO stores your Stack Overflow visits, provides personalized statistics, and adds to your experience of Stack Overflow Q&A pages.
 
+![STAKO browser extension showing on top of a Stack Overflow page](./assets/images/stako.jpg)
+
 ### Participate
 
 This is part of a University of Washington research project. To check out the consent form and participante, please visit our recruitment form [HERE](https://forms.gle/DWYvV1jnst6d27rk9).
@@ -11,7 +13,7 @@ This is part of a University of Washington research project. To check out the co
 ## Privacy Policy
 
 All STAKO data collection was reviewed and approved by the [Human Subjects Division at UW](https://www.washington.edu/research/hsd/).
-You can find our full Privacy Policy (HERE)[]. In the following we highlight the major points.
+In the following we highlight the major points of our **Privacy Policy**. You can read the full document [HERE](./privacy.html). 
 
 **SUMMARY:** 
 

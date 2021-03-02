@@ -1,37 +1,22 @@
-## Welcome to GitHub Pages
+## Welcome to STAKO
 
-You can use the [editor on GitHub](https://github.com/nigini/stako/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+Our goal is to add to your experience as an Stack Overflow user while supporting the site's inclusivity efforts. STAKO does that by analyzing Q&A page visits, testing new engagement strategies, and providing you with personalized feedback.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+STAKO stores your Stack Overflow visits, provides personalized statistics, and adds to your experience of Stack Overflow Q&A pages.
 
-### Markdown
+### Participate
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+This is part of a University of Washington research project. To check out the consent form and participante, please visit our recruitment form [HERE](https://forms.gle/DWYvV1jnst6d27rk9).
 
-```markdown
-Syntax highlighted code block
+## Privacy Policy
 
-# Header 1
-## Header 2
-### Header 3
+All STAKO data collection was reviewed and approved by the [Human Subjects Division at UW](https://www.washington.edu/research/hsd/).
+You can find our full Privacy Policy (HERE)[]. In the following we highlight the major points.
 
-- Bulleted
-- List
+**SUMMARY:** 
 
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/nigini/stako/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+  * STAKO is composed of this website, a browser plugin, and a server-side component. 
+  * All data sent from browser to server is encrypted and mostly anonymous. 
+  * The only piece of non-anonymous information we collect is your email, so we can confirm who you are and can avoid other people to access your data.
+  * To participate in our study, you will also respond to a couple of Google Form questionnaires which will be stored separately from your Stack Overflow data.
+  * Your data will only be used in an anonymous form, by our small research team, research purposes.

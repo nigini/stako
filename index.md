@@ -13,12 +13,12 @@ This is part of a University of Washington research project. To check out the co
 ## Privacy Policy
 
 All STAKO data collection was reviewed and approved by the [Human Subjects Division at UW](https://www.washington.edu/research/hsd/).
-In the following we highlight the major points of our **Privacy Policy**. You can read the full document [HERE](./privacy.html). 
+In the following we highlight the major points of our **Privacy Policy**. You can read the full document [HERE](./privacy.html).
 
 **SUMMARY:** 
 
-  * STAKO is composed of this website, a browser plugin, and a server-side component. 
-  * All data sent from browser to server is encrypted and mostly anonymous. 
-  * The only piece of non-anonymous information we collect is your email, so we can confirm who you are and can avoid other people to access your data.
-  * To participate in our study, you will also respond to a couple of Google Form questionnaires which will be stored separately from your Stack Overflow data.
-  * Your data will only be used in an anonymous form, by our small research team, research purposes.
+  * STAKO is composed of this website and a companion browser plugin component. 
+  * We strive to use industry accepted mean to protect your data through encrypted channels and data anonymization. 
+  * The few pieces of non-anonymous information we collect (like your email) are only used to matter directly related to your use of STAKO.
+  * Your data will only be used in aggregate and/or anonymous manner, by our small research team, for research purposes.
+  * We will NEVER commercialize you data.

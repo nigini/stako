@@ -2,11 +2,11 @@
 
 ## Privacy Policy
 
-*Last updated: 02/Mar/2021*
+*Last updated: 03/Mar/2021*
 
-STAKO ("us", "we", or "our") operates https://www.stako.org (the "Site") and the companion Browser Extensions ("companion software"). This page informs you of our policies regarding the collection, use and disclosure of Personal Information we receive from users of the Site and Browser Extensions (the "services"). 
+STAKO ("us", "we", or "our") operates https://www.stako.org (the "Site") and the companion Browser Extensions ("companion software"). This page informs you of our policies regarding the collection, use, and disclosure of Personal Information we receive from users of the Site and Browser Extensions (the "services"). 
 
-Moreover, STAKO, as a service focused on studying and augmenting the user experience in specific websites the user choose to volunteer their data (for instance, the Stack Overflow), this document also covers the Information we collect in such "studied websites".
+Moreover, STAKO is a service focused on studying and augmenting the user experience for specific websites the user chooses to volunteer their data (for instance, the Stack Overflow). Hence, this document also covers the information we collect in such Studied Websites.
 
 By using the STAKO services you agree to the collection and use of information in accordance with this policy.
 
@@ -22,13 +22,13 @@ We will NEVER share your Personal Information outside our research team.
 
 #### Identifiable information
 
-While using our Services, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you. Personally identifiable information may include, but it is not limited to your name and email ("Identifiable Information").
+While using our Services, we may ask you to provide us with certain personally identifiable information that can be used to contact or identify you. This personally identifiable information may include but it is not limited to your name and email ("Identifiable Information").
 
 Our use of your identifiable information is restricted to: 
   1. **authentication**: make sure you are who you say you are;
   2. **authorization**: make sure no other user has access to your data;
   3. **identification**: correctly associate to you all the data you provide through our services and eventual questionnaires;
-  4. **communication**: we will only contact you regarding matters specifically relevant to the studies you opted to participate including, but not limited to needed support and updates to our services and studies, request study information, and invitation to participate in related studies and activities.
+  4. **communication**: we will only contact you regarding matters specifically relevant to the studies you opted to participate in including, but not limited to needed support and updates to our services and studies, requests for study information, and invitations to participate in related studies and activities.
 
 ### Log Data
 
@@ -36,7 +36,7 @@ We collect information that your browser sends whenever you visit our Services (
 
 This Log Data may include information such as your computer's Internet Protocol ("IP") address, browser type, browser version, the pages of our Services and Studied Websites that you visit, the time and date of your visit, the time spent on those pages and other interactions and statistics.
 
-In addition, we may use third party services such as Google Analytics that collect, monitor and analyze the aggregate visitors' activity.
+In addition, we may use third-party services such as Google Analytics that collect, monitor, and analyze the aggregate visitors' activity.
 
 ### Cookies
 
@@ -54,7 +54,7 @@ This Privacy Policy is effective as of its last update and will remain in effect
 
 We reserve the right to update or change our Privacy Policy at any time and you should check this Privacy Policy periodically. Your continued use of the Service after we post any modifications to the Privacy Policy on this page will constitute your acknowledgment of the modifications and your consent to abide and be bound by the modified Privacy Policy.
 
-If we make any material changes to this Privacy Policy, we will notify you either through the email address you have provided us, or by placing a prominent notice on our website.
+If we make any material changes to this Privacy Policy, we will notify you either through the email address you have provided us or by placing a prominent notice on our website.
 
 ### Contact Us
 

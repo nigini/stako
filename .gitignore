@@ -108,4 +108,4 @@ venv.bak/
 
 #PROJECT
 stako-browser/*.zip
-stako-api/settings.py
+settings.py

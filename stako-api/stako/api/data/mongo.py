@@ -1,13 +1,12 @@
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.json_util import loads, dumps
-import uuid
 from datetime import datetime
 import logging
 import copy
-from stackoverflow import Question
-import data
-from data import StakoUser, Experiment
+from stako.api.data.stackoverflow import Question
+import stako.api.data.data as data
+from stako.api.data.data import StakoUser, Experiment
 
 COLLECTION_AUTH = 'authorizations'
 COLLECTION_USERS = 'users'

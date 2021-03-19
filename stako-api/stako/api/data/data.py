@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timezone
 import hashlib
 
+UUID_REGEX = "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
 
 def get_utc_timestamp():
     now = datetime.utcnow().replace(tzinfo=timezone.utc)

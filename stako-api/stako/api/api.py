@@ -1,16 +1,16 @@
-import settings
 import requests
 from flask import Flask, request
 import flask_restful
 from flask_restful import Resource, Api
 import logging
-from mongo import APIMongo, ExperimentMongo
-from data import StakoActivity, Experiment
 from urllib.parse import urlparse
 from functools import wraps
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, verify_jwt_in_request, decode_token
 from flask_jwt_extended.exceptions import NoAuthorizationError
 from jwt.exceptions import ExpiredSignatureError
+import stako.settings as settings
+from stako.api.data.mongo import APIMongo, ExperimentMongo
+from stako.api.data.data import StakoActivity, Experiment
 
 
 def authorize_user(func):

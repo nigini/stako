@@ -1,14 +1,13 @@
 import unittest
 import time
-import settings
-
 from pymongo import MongoClient
-import mongo
-from mongo import ExperimentMongo
-from data import StakoActivity, get_utc_timestamp, Experiment
 import json
+import stako.settings as settings
+import stako.api.data.mongo as mongo
+from stako.api.data.mongo import ExperimentMongo
+from stako.api.data.data import StakoActivity, get_utc_timestamp, Experiment
 
-from api import app, Auth
+from stako.api.api import app, Auth
 ACTIVITY_TYPE_SO_VISIT = StakoActivity.ACTIVITY_TYPE_SO_VISIT
 ACTIVITY_TYPE_SO_CLICK = StakoActivity.ACTIVITY_TYPE_SO_CLICK
 

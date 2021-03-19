@@ -1,8 +1,8 @@
-import settings
 import requests
 import json
 import logging
-from data import StakoActivity
+import stako.settings as settings
+from stako.api.data.data import StakoActivity
 
 API_SO_QS = 'https://api.stackexchange.com/2.2/questions/{}?site=stackoverflow&key={}&pagesize=100'
 
@@ -44,7 +44,7 @@ class Question:
     @staticmethod
     def _test_questions(question_ids):
         logging.info('[SO:GetQuestions] USING MOCK DATA!')
-        with open('test_stackoverflow.json') as so_data_file:
+        with open('./stako/api/data/test/test_stackoverflow.json') as so_data_file:
             so_data = json.load(so_data_file)['questions']
             to_return = []
             for q in so_data:

@@ -6,6 +6,7 @@ function init() {
   loadCarosel();
   trackCarouselClick();
   trackMottoAndNickname();
+  getAlerts();
 }
 
 // update popup display with latest visit
@@ -178,4 +179,9 @@ function updateStakoProfile(activity_body) {
             console.log('CANNOT SYNC ACTIVITY WITHOUT A USER_ID! TRY TO LOGIN AGAIN!');
         }
     });
+}
+
+function getAlerts() {
+  //Some sort of get request. Put it in cache, compare whats in cache vs. what got sent by the get request.
+  //Add alerts that chain, so closing one opens the next one.
 }

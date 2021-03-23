@@ -3,7 +3,7 @@ html,body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 300px;
+  height: 350px;
   width: 350px;
 /*  background-color: #99ffcc;*/
   margin: auto;
@@ -244,4 +244,8 @@ form .buttons .submit:hover {background-color: #14892c;}
 
 .carousel-inner {
   height: 100px;
+}
+
+.alert {
+  margin: auto;
 }

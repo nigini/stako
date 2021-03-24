@@ -1,16 +1,16 @@
-import settings
 import requests
 from flask import Flask, request
 import flask_restful
 from flask_restful import Resource, Api
 import logging
-from mongo import APIMongo, ExperimentMongo
-from data import StakoActivity, Experiment
 from urllib.parse import urlparse
 from functools import wraps
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, verify_jwt_in_request, decode_token
 from flask_jwt_extended.exceptions import NoAuthorizationError
 from jwt.exceptions import ExpiredSignatureError
+import stako.settings as settings
+from stako.api.data.mongo import APIMongo, ExperimentMongo
+from stako.api.data.data import StakoActivity, Experiment
 
 
 def authorize_user(func):
@@ -72,7 +72,7 @@ class Auth(APIBase):
                 if 'error' not in data.keys():
                     app = data['aud']
                     user = data['sub']
-                    if app == settings.STAKO_OAUTH_ID and user == google_id:
+                    if app in settings.STAKO_OAUTH_ID and user == google_id:
                         return True
         return False
 
@@ -177,6 +177,16 @@ class UserActivity(APIBase):
         return None
 
 
+class UserNotification(APIBase):
+    method_decorators = [authorize_user]
+
+    def get(self, uuid):
+        return {
+            'uuid': uuid,
+            'notifications': self.data_source.get_notifications(uuid)
+        }
+
+
 logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 api = Api(app)
@@ -190,6 +200,7 @@ api.add_resource(Auth, '{}/auth/'.format(prefix))
 api.add_resource(User, '{}/user/<uuid>/'.format(prefix))
 api.add_resource(UserActivity, '{}/user/<uuid>/activity/'.format(prefix))
 api.add_resource(UserExperiment, '{}/user/<uuid>/experiment/'.format(prefix))
+api.add_resource(UserNotification, '{}/user/<uuid>/notification/'.format(prefix))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=settings.STAKO_DEBUG)

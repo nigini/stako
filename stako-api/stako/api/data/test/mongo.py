@@ -1,11 +1,11 @@
 import unittest
-import settings
+import stako.settings as settings
 import logging
 
 from pymongo import MongoClient
-import mongo
-from mongo import ExperimentMongo, APIMongo, UserSummary
-from data import StakoActivity
+import stako.api.data.mongo as mongo
+from stako.api.data.mongo import ExperimentMongo, APIMongo, UserSummary
+from stako.api.data.data import StakoActivity, UUID_REGEX
 from datetime import datetime, timedelta, timezone
 
 
@@ -39,7 +39,7 @@ class TestExperiment(TestStako):
 		self.assertEqual({}, response)
 		# ADD experiment user
 		uuid = self.experiment.add_participant('participant@gmail.com')
-		self.assertRegex(uuid.lower(), "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}")
+		self.assertRegex(uuid.lower(), UUID_REGEX)
 		response = self.experiment.get_participant('participant@gmail.com')
 		self.assertEqual('participant@gmail.com', response['email'])
 		self.assertEqual(uuid, response['uuid'])

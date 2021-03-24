@@ -1,17 +1,17 @@
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.json_util import loads, dumps
-import uuid
 from datetime import datetime
 import logging
 import copy
-from stackoverflow import Question
-import data
-from data import StakoUser, Experiment
+from stako.api.data.stackoverflow import Question
+import stako.api.data.data as data
+from stako.api.data.data import StakoUser, Experiment
 
 COLLECTION_AUTH = 'authorizations'
 COLLECTION_USERS = 'users'
 COLLECTION_ACTIVITIES = 'activities'
+COLLECTION_NOTIFICATIONS = 'notifications'
 
 
 class ExperimentMongo:
@@ -149,11 +149,20 @@ class APIMongo:
 
 	def get_activities(self, user_uuid):
 		collection = self.db[COLLECTION_ACTIVITIES]
-		a_user = collection.find_one({'uuid': user_uuid}, {'_id': 0})
-		if a_user:
-			return loads(dumps(a_user))
+		act = collection.find_one({'uuid': user_uuid}, {'_id': 0})
+		if act:
+			return loads(dumps(act))
 		else:
 			return {}
+
+	def get_notifications(self, user_uuid):
+		collection = self.db[COLLECTION_NOTIFICATIONS]
+		notifications = collection.find({'uuid': user_uuid, 'delivered': None}, {'_id': 0})
+		to_return = []
+		if notifications:
+			pass
+		return to_return
+
 
 
 class UserSummary:

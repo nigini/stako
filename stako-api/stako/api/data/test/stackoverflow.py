@@ -1,11 +1,10 @@
 import unittest
-import settings
-
 from pymongo import MongoClient
-import mongo
-from mongo import ExperimentMongo, APIMongo
-from data import StakoActivity
-from stackoverflow import Question
+import stako.api.data.mongo as mongo
+from stako.api.data.mongo import ExperimentMongo, APIMongo
+import stako.settings as settings
+from stako.api.data.data import StakoActivity
+from stako.api.data.stackoverflow import Question
 
 # This data matches the MOCK DATA in the test_stakoverflow.json file
 TESTER_EMAIL = 'user@tester.com'

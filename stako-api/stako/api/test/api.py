@@ -1,20 +1,20 @@
 import unittest
 import time
-import settings
-
 from pymongo import MongoClient
-import mongo
-from mongo import ExperimentMongo
-from data import StakoActivity, get_utc_timestamp, Experiment
 import json
+import stako.settings as settings
+import stako.api.data.mongo as mongo
+from stako.api.data.mongo import ExperimentMongo
+from stako.api.data.data import StakoActivity, get_utc_timestamp, Experiment
 
-from api import app, Auth
+from stako.api.api import app, Auth
 ACTIVITY_TYPE_SO_VISIT = StakoActivity.ACTIVITY_TYPE_SO_VISIT
 ACTIVITY_TYPE_SO_CLICK = StakoActivity.ACTIVITY_TYPE_SO_CLICK
 
 URL = 'http://127.0.0.1:5000/v1/'
 URL_ACTIVITY = URL + 'user/{}/activity/'
 URL_EXPERIMENT = URL + 'user/{}/experiment/'
+URL_NOTIFICATION = URL + 'user/{}/notification/'
 
 
 class TestAPI(unittest.TestCase):
@@ -271,3 +271,28 @@ class TestExperimentAPI(TestAPI):
 			self.assertTrue(self.exp_name_test2_hash in u_experiments['experiments'].keys())
 			self.assertEqual(self.exp_group_test_hash, u_experiments['experiments'][self.exp_name_test_hash])
 			self.assertEqual(self.exp_group_test2_hash, u_experiments['experiments'][self.exp_name_test2_hash])
+
+
+class TestNotificationAPI(TestAPI):
+
+	def setUp(self):
+		super(TestNotificationAPI, self).setUp()
+
+	def test_experiments(self):
+		with app.test_client() as client:
+			response = client.get(URL + 'auth/?email={}&google_id={}&token={}'.format(Auth.TESTER_EMAIL, '', ''))
+			self.assertEqual(200, response.status_code)
+			auth_token = response.get_json()
+			header = {'Authorization': 'Bearer {}'.format(auth_token['access_token'])}
+			response = client.get(URL + 'user/{}/'.format(self.tester_uuid), headers=header)
+			self.assertEqual(200, response.status_code)
+			# GET NON-EXISTENT PARTICIPANT
+			response = client.get(URL_NOTIFICATION.format('NOT_VALID_USERID'), headers=header,
+								  content_type='application/json')
+			self.assertEqual(403, response.status_code)
+			# VALID USER
+			response = client.get(URL_NOTIFICATION.format(self.tester_uuid), headers=header,
+								  content_type='application/json')
+			self.assertEqual(200, response.status_code)
+			u_notifications = response.get_json()['notifications']
+			self.assertEqual(0, len(u_notifications))

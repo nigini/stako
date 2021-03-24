@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timezone
 import hashlib
 
+UUID_REGEX = "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
 
 def get_utc_timestamp():
     now = datetime.utcnow().replace(tzinfo=timezone.utc)
@@ -88,6 +89,20 @@ class StakoActivity:
             'type': '',
             'timestamp': get_utc_timestamp(),
             'data': {}
+        }
+
+
+class StakoNotification:
+
+    NOTIFICATION_TYPE = ['info', 'alert', 'error']
+
+    @staticmethod
+    def get_empty_activity():
+        return {
+            'uuid': '',
+            'type': '',
+            'created': get_utc_timestamp(),
+            'delivered': None
         }
 
 

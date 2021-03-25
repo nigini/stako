@@ -1,10 +1,10 @@
 import unittest
 import stako.settings as settings
 import logging
-
 from pymongo import MongoClient
 import stako.api.data.mongo as mongo
 from stako.api.data.mongo import ExperimentMongo, APIMongo, UserSummary
+import stako.api.data.data as stako_data
 from stako.api.data.data import StakoActivity, UUID_REGEX
 from datetime import datetime, timedelta, timezone
 
@@ -43,6 +43,7 @@ class TestExperiment(TestStako):
 		response = self.experiment.get_participant('participant@gmail.com')
 		self.assertEqual('participant@gmail.com', response['email'])
 		self.assertEqual(uuid, response['uuid'])
+		self.assertEqual('', response['pass_hash'])
 		self.assertEqual([], response['roles'])
 		self.assertEqual({}, response['experiments'])
 
@@ -60,6 +61,36 @@ class TestExperiment(TestStako):
 		response = self.experiment.add_participant('participant@gmail.com')
 		self.assertIsNone(response)
 
+	def test_regen_passkey(self):
+		uuid = self.experiment.add_participant('participant@gmail.com')
+		self.assertRegex(uuid.lower(), UUID_REGEX)
+		response = self.experiment.get_participant('participant@gmail.com')
+		self.assertEqual('participant@gmail.com', response['email'])
+		self.assertEqual(uuid, response['uuid'])
+		self.assertEqual('', response['pass_hash'])
+		self.assertEqual([], response['roles'])
+		self.assertEqual({}, response['experiments'])
+
+		pass_key = self.experiment.regen_participant_passkey('')
+		self.assertIsNone(pass_key)
+		response = self.experiment.get_participant('participant@gmail.com')
+		self.assertEqual('', response['pass_hash'])
+		pass_key = self.experiment.regen_participant_passkey('not_existing@stako.org')
+		self.assertIsNone(pass_key)
+		response = self.experiment.get_participant('participant@gmail.com')
+		self.assertEqual('', response['pass_hash'])
+
+		pass_key = self.experiment.regen_participant_passkey('participant@gmail.com')
+		self.assertIsNotNone(pass_key)
+		response = self.experiment.get_participant('participant@gmail.com')
+		pass_hash = response['pass_hash']
+		self.assertEqual(stako_data.string_hash(pass_key), pass_hash)
+		pass_key2 = self.experiment.regen_participant_passkey('participant@gmail.com')
+		self.assertIsNotNone(pass_key2)
+		response = self.experiment.get_participant('participant@gmail.com')
+		pass_hash2 = response['pass_hash']
+		self.assertEqual(stako_data.string_hash(pass_key2), pass_hash2)
+		self.assertNotEqual(pass_key, pass_key2)
 
 	def test_experiment_roles(self):
 		p_email = 'participant@gmail.com'

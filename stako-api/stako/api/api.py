@@ -10,6 +10,7 @@ from flask_jwt_extended.exceptions import NoAuthorizationError
 from jwt.exceptions import ExpiredSignatureError
 import stako.settings as settings
 from stako.api.data.mongo import APIMongo, ExperimentMongo
+import stako.api.data.data as stako_data
 from stako.api.data.data import StakoActivity, Experiment
 
 
@@ -37,23 +38,58 @@ class APIBase(Resource):
 
 
 class Auth(APIBase):
+    TESTER_EMAIL = 'user@somewhere.com'
+
+    def return_token(self, email):
+        user = self.experiment.get_participant(email)
+        if 'uuid' in user.keys():
+            # TODO: Should check for existing one first?
+            token = self._get_token(user.get('uuid'))
+            if token:
+                return token, 200
+            else:
+                return {'MESSAGE': 'Non Authorized: User with email {} is not a registered STAKO user!'
+                        .format(email)}, 401
+
+    @staticmethod
+    def _get_token(uuid):
+        token = create_access_token(identity=uuid)
+        token_exp = decode_token(token)['exp']
+        return {'uuid': uuid, 'access_token': token, 'expiration': token_exp}
+
+
+class AuthStako(Auth):
+    TESTER_EMAIL = 'user@stako.com'
+
+    def get(self):
+        data = request.args
+        if data and ('email' in data.keys()) and ('pass_key' in data.keys()):
+            if self._validate_passkey(data.get('email'), data.get('pass_key')):
+                return self.return_token(data.get('email'))
+            return {'MESSAGE': 'Invalid user/passkey pair.'}, 401
+        else:
+            return {'MESSAGE': 'Malformed auth request: need "email" and "token" params.'}, 400
+
+    def _validate_passkey(self, email, passkey):
+        if email == AuthStako.TESTER_EMAIL:
+            return True
+        else:
+            participant = self.experiment.get_participant(email)
+            if participant and participant['pass_hash'] == stako_data.string_hash(passkey):
+                return True
+        return False
+
+
+class AuthGoogle(Auth):
     GOOGLE_OAUTH_INFO = 'https://oauth2.googleapis.com/tokeninfo?access_token={}'
-    TESTER_EMAIL = 'user@tester.com'
+    TESTER_EMAIL = 'user@google.com'
 
     def get(self):
         data = request.args
         if data and ('email' in data.keys()) and ('google_id' in data.keys()) and ('token' in data.keys()):
             valid = self._validate_token(data.get('email'), data.get('google_id'), data.get('token'))
             if valid:
-                user = self.experiment.get_participant(data.get('email'))
-                if 'uuid' in user.keys():
-                    # TODO: Should check for existing one first?
-                    token = create_access_token(identity=user['uuid'])
-                    token_exp = decode_token(token)['exp']
-                    return {'uuid': user['uuid'], 'access_token': token, 'expiration': token_exp}
-                else:
-                    return {'MESSAGE': 'Non Authorized: User with email {} is not a registered STAKO user!'
-                            .format(data.get('email'))}, 401
+                return self.return_token(data.get('email'))
             else:
                 return {'MESSAGE': 'Non Authorized: Invalid OAUTH token for provided email!'}, 401
         else:
@@ -62,9 +98,9 @@ class Auth(APIBase):
     def _validate_token(self, email, google_id, oauth_token):
         logging.info('[API:AUTHORIZE] EMAIL {}, GID {}, and TOKEN {}.'.format(email, google_id, oauth_token))
         if settings.STAKO_TEST:
-            return email.lower() == Auth.TESTER_EMAIL
+            return email.lower() == AuthGoogle.TESTER_EMAIL
         else:
-            r_url = Auth.GOOGLE_OAUTH_INFO.format(oauth_token)
+            r_url = AuthGoogle.GOOGLE_OAUTH_INFO.format(oauth_token)
             response = requests.get(r_url)
             if response.status_code == 200:
                 data = response.json()
@@ -196,7 +232,8 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = settings.STAKO_JWT_TOKEN_EXPIRES
 jwt = JWTManager(app)
 
 prefix = '/v1'
-api.add_resource(Auth, '{}/auth/'.format(prefix))
+api.add_resource(AuthGoogle, '{}/auth/google'.format(prefix))
+api.add_resource(AuthStako, '{}/auth/stako'.format(prefix))
 api.add_resource(User, '{}/user/<uuid>/'.format(prefix))
 api.add_resource(UserActivity, '{}/user/<uuid>/activity/'.format(prefix))
 api.add_resource(UserExperiment, '{}/user/<uuid>/experiment/'.format(prefix))

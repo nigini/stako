@@ -165,6 +165,17 @@ class UserExperiment(APIBase):
 class UserActivity(APIBase):
     method_decorators = [authorize_user]
 
+    def get(self, uuid):
+        user = self.data_source.get_user(uuid)
+        act = []
+        if user:
+            start = request.args.get('date_start', None)
+            end = request.args.get('date_end', None)
+            act = self.data_source.get_activities(uuid, start_date=start, end_date=end)
+        to_return = {'activities': act}
+        logging.debug('[STAKO:API:ACTIVITY] Returned: {}'.format(to_return))
+        return to_return
+
     def post(self, uuid):
         user = self.data_source.get_user(uuid)
         if user:
@@ -223,7 +234,10 @@ class UserNotification(APIBase):
         }
 
 
-logging.basicConfig(level=logging.INFO)
+if settings.STAKO_DEBUG:
+    logging.basicConfig(level=logging.DEBUG)
+else:
+    logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 api = Api(app)
 

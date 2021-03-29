@@ -7,7 +7,7 @@ import copy
 import secrets
 from stako.api.data.stackoverflow import Question
 import stako.api.data.data as stako_data
-from stako.api.data.data import StakoUser, Experiment
+from stako.api.data.data import StakoUser, Experiment, StakoActivity
 
 COLLECTION_AUTH = 'authorizations'
 COLLECTION_USERS = 'users'
@@ -162,13 +162,14 @@ class APIMongo:
 		logging.info('[Mongo:SaveActivity] Saved? {}'.format(saved))
 		return saved
 
-	def get_activities(self, user_uuid):
+	def get_activities(self, user_uuid, a_type=StakoActivity.ACTIVITY_TYPE_SO_VISIT):
 		collection = self.db[COLLECTION_ACTIVITIES]
-		act = collection.find_one({'uuid': user_uuid}, {'_id': 0})
-		if act:
-			return loads(dumps(act))
-		else:
-			return {}
+		result = collection.find({'uuid': user_uuid, 'type': a_type}, {'_id': 0, 'url': 1, 'timestamp': 1})
+		to_return = []
+		if result:
+			for act in result:
+				to_return.append(act)
+		return to_return
 
 	def get_notifications(self, user_uuid):
 		collection = self.db[COLLECTION_NOTIFICATIONS]

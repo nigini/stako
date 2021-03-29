@@ -1,12 +1,38 @@
 window.addEventListener("load", init);
 
 function init() {
-  displayVisit();
-  addButtonFunctionality();
-  loadCarosel();
-  trackCarouselClick();
-  trackMottoAndNickname();
-  getAlerts();
+  var loggedIn = getCredentials();
+  if(loggedIn) {
+    displayVisit();
+    addButtonFunctionality();
+    loadCarosel();
+    trackCarouselClick();
+    trackMottoAndNickname();
+    getAlerts();
+  }
+}
+
+function getCredentials() {
+  var displayLogin = true;
+  chrome.storage.local.get(['USER'], function(result) {
+    if(result.username && result.password) {
+      displayLogin = verifyCredentials();
+    }
+  });
+  if(displayLogin) {
+    document.getElementById("user-display").classList.add("hidden");
+    document.getElementById("cred-submit").addEventListener('click', function (e) {
+      document.getElementById("username").value = "";
+      document.getElementById("password").value = "";
+    });
+    return false;
+  } else {
+    return true;
+  }
+}
+
+function verifyCredentials() {
+  return true;
 }
 
 // update popup display with latest visit

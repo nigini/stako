@@ -249,3 +249,17 @@ form .buttons .submit:hover {background-color: #14892c;}
 .alert {
   margin: auto;
 }
+
+.hidden {
+  display: none;
+}
+
+#credentials {
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+}
+
+#cred-submit {
+  margin-top: 10px
+}

@@ -1,0 +1,2 @@
+STAKO_DEBUG = True
+STAKO_API_URL = 'https://api.stako.org/v1/'

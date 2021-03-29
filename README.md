@@ -40,3 +40,16 @@ You'll probably see something like `INFO:werkzeug: * Running on http://127.0.0.1
 **TODO!**
 
 
+## How to run the Stako Site/Webapp?
+
+To run the Stako WebApp, you need to:
+1. already have installed the STAKO requirements (if VENV, also activate it)
+2. and have a STAKO API running and accessible
+
+### Dev mode
+
+1. Copy the `settings.py.model` file to `settings.py` and point it to your API process
+2. Enter the `stako-site` folder
+3. Execute `FLASK_APP=stako.webapp.main flask run --port=5050`
+
+If all is fine, when accessing this server on your browser you should see a "HELLO WORLD" message.

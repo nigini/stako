@@ -4,8 +4,9 @@ from bson.json_util import loads, dumps
 from datetime import datetime
 import logging
 import copy
+import secrets
 from stako.api.data.stackoverflow import Question
-import stako.api.data.data as data
+import stako.api.data.data as stako_data
 from stako.api.data.data import StakoUser, Experiment
 
 COLLECTION_AUTH = 'authorizations'
@@ -46,6 +47,20 @@ class ExperimentMongo:
 			return True
 		else:
 			return False
+
+	def regen_participant_passkey(self, email):
+		participant = self.get_participant(email)
+		if participant == {}:
+			return None
+		else:
+			pass_key = secrets.token_hex(20)
+			participant['pass_hash'] = stako_data.string_hash(pass_key)
+			updated = self._update_participant(participant)
+			if updated:
+				return pass_key
+			else:
+				return None
+
 
 	# Makes sure the role is part of this participant's roles
 	def add_participant_role(self, email, role):
@@ -180,7 +195,7 @@ class UserSummary:
 			if reset:
 				user['activity']['weekly_summary'] = StakoUser.get_empty_weekly_summary()
 			else:
-				user['activity']['updated'] = data.get_utc_timestamp()
+				user['activity']['updated'] = stako_data.get_utc_timestamp()
 			last_updated = user['activity']['weekly_summary']
 			act_questions_ids = self.so_questions.get_visits_questions_keys(user_act)
 			questions_data = self.so_questions.get_questions(act_questions_ids.keys())

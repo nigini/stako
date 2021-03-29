@@ -1,4 +1,5 @@
 import requests
+import pathlib
 import json
 import logging
 import stako.settings as settings
@@ -44,7 +45,8 @@ class Question:
     @staticmethod
     def _test_questions(question_ids):
         logging.info('[SO:GetQuestions] USING MOCK DATA!')
-        with open('./stako/api/data/test/test_stackoverflow.json') as so_data_file:
+        mock_api_data = pathlib.Path(__file__).parent.absolute().__str__()+'/test/test_stackoverflow.json'
+        with open(mock_api_data) as so_data_file:
             so_data = json.load(so_data_file)['questions']
             to_return = []
             for q in so_data:

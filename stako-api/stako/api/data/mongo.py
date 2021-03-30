@@ -118,6 +118,8 @@ class ExperimentMongo:
 
 	def get_participant(self, by_value, by_key='email'):
 		collection = self.db[COLLECTION_AUTH]
+		#by_value = "email=" + by_value
+		#print(by_value)
 		if isinstance(by_value, str):
 			by_value = by_value.lower()
 		a_user = collection.find_one({by_key: by_value}, {'_id': 0})
@@ -186,7 +188,6 @@ class APIMongo:
 		if notifications:
 			pass
 		return to_return
-
 
 
 class UserSummary:

@@ -284,8 +284,7 @@ class TestActivityAPI(TestAPI):
 		self.assertEqual(1, len(data['activities']))
 		self.assertEqual(another_activity['url'], data['activities'][0]['url'])
 
-
-	def test_put_activity(self):
+	def test_post_activity(self):
 		with app.test_client() as client:
 			response = client.get(URL_AUTHG.format(AuthGoogle.TESTER_EMAIL, '', ''))
 			self.assertEqual(200, response.status_code)

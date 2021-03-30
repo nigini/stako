@@ -1,11 +1,34 @@
 window.addEventListener("load", init);
 
 function init() {
-  displayVisit();
-  addButtonFunctionality();
-  loadCarosel();
-  trackCarouselClick();
-  trackMottoAndNickname();
+  document.getElementById("user-display").classList.add("hidden");
+  document.getElementById("credentials").classList.add("cred-flex");
+  document.getElementById("cred-submit").addEventListener('click', function (e) {
+    var user = document.getElementById("username").value;
+    var pass = document.getElementById("password").value;
+    var wholeUser = {username: user, password: pass};
+    chrome.storage.local.set({'USER': wholeUser});
+    triggerAuthenticationAndDisplay();
+  });
+  triggerAuthenticationAndDisplay();
+}
+
+function triggerAuthenticationAndDisplay() {
+  getValidToken(true).then( token => {
+    if (!token) {
+      alert("You are currently not logged into STAKO or provided incorrect credentials!");
+    } else {
+      document.getElementById("user-display").classList.remove("hidden");
+      document.getElementById("credentials").classList.remove("cred-flex");
+      document.getElementById("credentials").classList.add("hidden");
+      displayVisit();
+      addButtonFunctionality();
+      loadCarosel();
+      trackCarouselClick();
+      trackMottoAndNickname();
+      getAlerts();
+    }
+  });
 }
 
 // update popup display with latest visit
@@ -135,7 +158,6 @@ function trackClick(element) {
 }
 
 function trackMottoAndNickname() {
-  console.log("hello");
   document.getElementById("nickname").addEventListener("input", function() {
     var updatedNickname = document.getElementById("nickname").textContent;
     var update = {
@@ -178,4 +200,9 @@ function updateStakoProfile(activity_body) {
             console.log('CANNOT SYNC ACTIVITY WITHOUT A USER_ID! TRY TO LOGIN AGAIN!');
         }
     });
+}
+
+function getAlerts() {
+  //Some sort of get request. Put it in cache, compare whats in cache vs. what got sent by the get request.
+  //Add alerts that chain, so closing one opens the next one.
 }

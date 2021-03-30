@@ -6,3 +6,4 @@ celery
 flask-restful
 pytest
 flask_jwt_extended
+flask_cors

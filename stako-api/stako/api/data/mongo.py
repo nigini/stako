@@ -118,6 +118,8 @@ class ExperimentMongo:
 
 	def get_participant(self, by_value, by_key='email'):
 		collection = self.db[COLLECTION_AUTH]
+		#by_value = "email=" + by_value
+		#print(by_value)
 		if isinstance(by_value, str):
 			by_value = by_value.lower()
 		a_user = collection.find_one({by_key: by_value}, {'_id': 0})
@@ -162,9 +164,17 @@ class APIMongo:
 		logging.info('[Mongo:SaveActivity] Saved? {}'.format(saved))
 		return saved
 
-	def get_activities(self, user_uuid, a_type=StakoActivity.ACTIVITY_TYPE_SO_VISIT):
+	def get_activities(self, user_uuid, start_date=None, end_date=None, a_type=StakoActivity.ACTIVITY_TYPE_SO_VISIT):
 		collection = self.db[COLLECTION_ACTIVITIES]
-		result = collection.find({'uuid': user_uuid, 'type': a_type}, {'_id': 0, 'url': 1, 'timestamp': 1})
+		query = {'uuid': user_uuid, 'type': a_type}
+		time_constaint = {}
+		if start_date:
+			time_constaint['$gte'] = int(start_date)
+		if end_date:
+			time_constaint['$lte'] = int(end_date)
+		if time_constaint:
+			query['timestamp'] = time_constaint
+		result = collection.find(query, {'_id': 0, 'url': 1, 'timestamp': 1})
 		to_return = []
 		if result:
 			for act in result:
@@ -178,7 +188,6 @@ class APIMongo:
 		if notifications:
 			pass
 		return to_return
-
 
 
 class UserSummary:

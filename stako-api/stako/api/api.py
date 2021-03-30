@@ -12,6 +12,7 @@ import stako.settings as settings
 from stako.api.data.mongo import APIMongo, ExperimentMongo
 import stako.api.data.data as stako_data
 from stako.api.data.data import StakoActivity, Experiment
+from flask_cors import CORS
 
 
 def authorize_user(func):
@@ -169,7 +170,9 @@ class UserActivity(APIBase):
         user = self.data_source.get_user(uuid)
         act = []
         if user:
-            act = self.data_source.get_activities(uuid)
+            start = request.args.get('date_start', None)
+            end = request.args.get('date_end', None)
+            act = self.data_source.get_activities(uuid, start_date=start, end_date=end)
         to_return = {'activities': act}
         logging.debug('[STAKO:API:ACTIVITY] Returned: {}'.format(to_return))
         return to_return
@@ -241,6 +244,7 @@ else:
     logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 api = Api(app)
+CORS(app)
 
 app.config['JWT_SECRET_KEY'] = settings.STAKO_JWT_SECRET
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = settings.STAKO_JWT_TOKEN_EXPIRES

@@ -2,6 +2,7 @@ import unittest
 import time
 from pymongo import MongoClient
 import json
+from datetime import datetime
 import stako.settings as settings
 import stako.api.data.mongo as mongo
 from stako.api.data.mongo import ExperimentMongo
@@ -16,6 +17,9 @@ URL = 'http://127.0.0.1:5000/v1/'
 URL_AUTHG = URL + 'auth/google?email={}&google_id={}&token={}'
 URL_AUTHS = URL + 'auth/stako?email={}&pass_key={}'
 URL_ACTIVITY = URL + 'user/{}/activity/'
+URL_ACTIVITY_TIME = '?date_start={}&date_end={}'
+URL_ACTIVITY_TIME_S = '?date_start={}'
+URL_ACTIVITY_TIME_E = '?date_end={}'
 URL_EXPERIMENT = URL + 'user/{}/experiment/'
 URL_NOTIFICATION = URL + 'user/{}/notification/'
 
@@ -218,24 +222,69 @@ class TestActivityAPI(TestAPI):
 		self.assertTrue('activities' in data.keys())
 		self.assertEqual(0, len(data['activities']))
 
+		checkpoint1 = stako_data.get_utc_timestamp()
 		an_activity = {
 			'url': 'https://stackoverflow.com/questions/20001229/',
 			'type': ACTIVITY_TYPE_SO_VISIT
 		}
-		response = self.api.put(URL_ACTIVITY.format(self.tester_g_uuid), data=json.dumps(an_activity),
+		response = self.api.post(URL_ACTIVITY.format(self.tester_g_uuid), data=json.dumps(an_activity),
 								headers=self.header, content_type='application/json')
 		self.assertEqual(200, response.status_code)
 
 		response = self.api.get(URL_ACTIVITY.format(self.tester_g_uuid), headers=self.header)
 		self.assertEqual(200, response.status_code)
 		data = response.get_json()
-		print(data)
 		self.assertTrue('activities' in data.keys())
 		self.assertEqual(1, len(data['activities']))
 		self.assertEqual(an_activity['url'], data['activities'][0]['url'])
 
+		time.sleep(2)
+		checkpoint2 = stako_data.get_utc_timestamp()
+		another_activity = {
+			'url': 'https://stackoverflow.com/questions/44666648/',
+			'type': ACTIVITY_TYPE_SO_VISIT
+		}
+		response = self.api.post(URL_ACTIVITY.format(self.tester_g_uuid), data=json.dumps(another_activity),
+								headers=self.header, content_type='application/json')
+		self.assertEqual(200, response.status_code)
 
-	def test_put_activity(self):
+		response = self.api.get(URL_ACTIVITY.format(self.tester_g_uuid), headers=self.header)
+		self.assertEqual(200, response.status_code)
+		data = response.get_json()
+		self.assertTrue('activities' in data.keys())
+		self.assertEqual(2, len(data['activities']))
+		self.assertEqual(an_activity['url'], data['activities'][0]['url'])
+		self.assertEqual(another_activity['url'], data['activities'][1]['url'])
+
+		# TIME CONSTRAINT
+		time.sleep(2)
+		checkpoint3 = stako_data.get_utc_timestamp()
+		url = URL_ACTIVITY.format(self.tester_g_uuid) + URL_ACTIVITY_TIME.format(checkpoint2, checkpoint3)
+		response = self.api.get(url, headers=self.header)
+		self.assertEqual(200, response.status_code)
+		data = response.get_json()
+		self.assertTrue('activities' in data.keys())
+		self.assertEqual(1, len(data['activities']))
+		self.assertEqual(another_activity['url'], data['activities'][0]['url'])
+
+		url = URL_ACTIVITY.format(self.tester_g_uuid) + URL_ACTIVITY_TIME_E.format(checkpoint2-1)
+		response = self.api.get(url, headers=self.header)
+		self.assertEqual(200, response.status_code)
+		data = response.get_json()
+
+		self.assertTrue('activities' in data.keys())
+		self.assertEqual(1, len(data['activities']))
+		self.assertEqual(an_activity['url'], data['activities'][0]['url'])
+
+		url = URL_ACTIVITY.format(self.tester_g_uuid) + URL_ACTIVITY_TIME_S.format(checkpoint2)
+		response = self.api.get(url, headers=self.header)
+		self.assertEqual(200, response.status_code)
+		data = response.get_json()
+		self.assertTrue('activities' in data.keys())
+		self.assertEqual(1, len(data['activities']))
+		self.assertEqual(another_activity['url'], data['activities'][0]['url'])
+
+	def test_post_activity(self):
 		with app.test_client() as client:
 			response = client.get(URL_AUTHG.format(AuthGoogle.TESTER_EMAIL, '', ''))
 			self.assertEqual(200, response.status_code)

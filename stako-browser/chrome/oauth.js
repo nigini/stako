@@ -10,6 +10,8 @@ window.onload = function () {
 };
 
 const STAKO_API_URL = 'https://stako.org/api/v1/';
+//const LOCAL_TEST = http://127.0.0.1:5000/v1/auth/stako?email=user@stako.com&pass_key=54a2663cafa7a2eba134397eba59f159a6da49db;
+const LOCAL_TEST = "http://127.0.0.1:5000/v1/auth/stako";
 const STAKO_AUTH_URL = STAKO_API_URL + 'auth/';
 const STAKO_USER_URL = STAKO_API_URL + 'user/';
 
@@ -27,7 +29,7 @@ function getValidToken(reAuth=true) {
                 }
             }
             if(reAuth) {
-                return authenticateUser().then(success => {
+                return authenticateUserStako().then(success => {
                     if(success) {
                         return resolve(getValidToken(false));
                     }
@@ -37,11 +39,43 @@ function getValidToken(reAuth=true) {
         });
     });
 }
+
+/**
+ * Implementation of authentication using the STAKO system instead of Google.
+ */
+
+function authenticateUserStako() {
+    return new Promise(function(resolve, reject) {
+        chrome.storage.local.get(['USER'], function(result) {
+            result = result['USER'];
+            console.log(result.username + " " + result.password);
+            if(!result.username || !result.password) {
+                window.alert("You need to log into STAKO again! Open the popup to proceed!");
+                return resolve(false);
+            }
+            if(result.username && result.password) {
+                const auth_url = LOCAL_TEST + `?email=${result.username}&pass_key=${result.password}`;
+                authStakoUser(auth_url).then(stakoToken => {
+                    if (stakoToken) {
+                        chrome.storage.local.set({'STAKO_TOKEN': stakoToken});
+                        updateStakoUser(stakoToken.uuid).then(user => {
+                            return resolve(true);
+                        })
+                    } else {
+                        console.log('FAIL TO RETRIEVE STAKO TOKEN!');
+                        //window.alert("You are currently not logged into STAKO or provided incorrect credentials!");
+                        return resolve(false);
+                    }
+                });
+            }
+        });
+    });
+}
 /*
  * Request CHROME_USER and validate it as a STAKO_USER.
  * If the authentication happens correctly, this method will also update the cached STAKO_USER.
  */
-function authenticateUser() {
+function authenticateGoogleUser() {
     return new Promise(function(resolve, reject) {
         chrome.identity.getAuthToken({interactive: true}, function (token) {
             if (chrome.runtime.lastError) {
@@ -51,7 +85,8 @@ function authenticateUser() {
                 chrome.identity.getProfileUserInfo(function (info) {
                     console.log('AUTHENTICATING: ' + info.email + ' - GOOGLE_ID: ' + info.id + ' - TOKEN: ' + token);
                     chrome.storage.local.set({email: info.email});
-                    authStakoUser(info.email, info.id, token).then(stakoToken => {
+                    const auth_url = STAKO_AUTH_URL + `?email=${info.email}&google_id=${info.id}&token=${token}`;
+                    authStakoUser(auth_url).then(stakoToken => {
                         if (stakoToken) {
                             chrome.storage.local.set({'STAKO_TOKEN': stakoToken});
                             updateStakoUser(stakoToken.uuid).then(user => {
@@ -68,9 +103,7 @@ function authenticateUser() {
     });
 }
 
-function authStakoUser(userEmail, googleID, oauthToken) {
-    console.log('authenticating stako user: ' + userEmail);
-    const auth_url = STAKO_AUTH_URL + `?email=${userEmail}&google_id=${googleID}&token=${oauthToken}`;
+function authStakoUser(auth_url) {
     const request = new Request(auth_url, {method: 'GET'});
     return fetch(request)
         .then(response => {

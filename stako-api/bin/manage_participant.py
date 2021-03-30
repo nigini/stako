@@ -15,6 +15,8 @@ sum = UserSummary(settings)
 
 def add_user(user_email, role):
     # TODO: Check invalid email format
+    user_email = user_email[6:]
+    print(user_email[6:])
     uuid = exp.add_participant(user_email)
     if uuid:
         print("Added participant {}.".format(user_email))

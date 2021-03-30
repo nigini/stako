@@ -11,34 +11,50 @@
   <script src="js/bootstrap.min.js"></script>
 </head>
 <body>
-  <span id="login">LOGIN</span>
-  <section id="identity">
-    <section id="intro">
-      <div id="profile_pic">
-        <img src="img/stako128.png" alt="User Profile Picture">
-      </div>
-      <div id="name_and_motto">
-        <h1 id="nickname">Nickname </h1>
-        <h2 id="motto">Motto </h2>
-      </div>
-    </section>
-  </section>
-  <section id="activity">
-    <h2>Weekly Activity Summary</h2>
-    <div id="summary-container" class="container">
-      <div id="carouselContent" class="carousel slide" data-interval="false" data-ride="carousel">
-          <div class="carousel-inner" role="listbox">
-          </div>
-          <a class="carousel-control-prev" href="#carouselContent" role="button" data-slide="prev">
-              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-              <span class="sr-only">Previous</span>
-          </a>
-          <a class="carousel-control-next" href="#carouselContent" role="button" data-slide="next">
-              <span class="carousel-control-next-icon" aria-hidden="true"></span>
-              <span class="sr-only">Next</span>
-          </a>
-      </div>
+  <!--
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <strong>A message from STAKO!</strong> You are one week into the study!
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
   </div>
+  -->
+  <section id="credentials">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username">
+    <label for="password">Password:</label>
+    <input type="text" id="password" name="password">
+    <button id="cred-submit">Submit</button>
+  </section>
+  <section id="user-display">
+    <section id="identity">
+      <section id="intro">
+        <div id="profile_pic">
+          <img src="img/stako128.png" alt="User Profile Picture">
+        </div>
+        <div id="name_and_motto">
+          <h1 id="nickname">Nickname </h1>
+          <h2 id="motto">Motto </h2>
+        </div>
+      </section>
+    </section>
+    <section id="activity">
+      <h2>Weekly Activity Summary Change</h2>
+      <div id="summary-container" class="container">
+        <div id="carouselContent" class="carousel slide" data-interval="false" data-ride="carousel">
+            <div class="carousel-inner" role="listbox">
+            </div>
+            <a class="carousel-control-prev" href="#carouselContent" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#carouselContent" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+    </div>
+    </section>
   </section>
 </body>
 </html>

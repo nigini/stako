@@ -12,6 +12,7 @@ import stako.settings as settings
 from stako.api.data.mongo import APIMongo, ExperimentMongo
 import stako.api.data.data as stako_data
 from stako.api.data.data import StakoActivity, Experiment
+from flask_cors import CORS
 
 
 def authorize_user(func):
@@ -241,6 +242,7 @@ else:
     logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 api = Api(app)
+CORS(app)
 
 app.config['JWT_SECRET_KEY'] = settings.STAKO_JWT_SECRET
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = settings.STAKO_JWT_TOKEN_EXPIRES

@@ -201,7 +201,41 @@ class TestUserAPI(TestAPI):
 
 
 class TestActivityAPI(TestAPI):
-	def test_activity(self):
+	def setUp(self):
+		super(TestActivityAPI, self).setUp()
+		with app.test_client() as self.api:
+			response = self.api.get(URL_AUTHG.format(AuthGoogle.TESTER_EMAIL, '', ''))
+			self.assertEqual(200, response.status_code)
+			auth_token = response.get_json()
+			self.header = {'Authorization': 'Bearer {}'.format(auth_token['access_token'])}
+			response = self.api.get(URL + 'user/{}/'.format(self.tester_g_uuid), headers=self.header)
+			self.assertEqual(200, response.status_code)
+
+	def test_get_activity(self):
+		response = self.api.get(URL_ACTIVITY.format(self.tester_g_uuid), headers=self.header)
+		self.assertEqual(200, response.status_code)
+		data = response.get_json()
+		self.assertTrue('activities' in data.keys())
+		self.assertEqual(0, len(data['activities']))
+
+		an_activity = {
+			'url': 'https://stackoverflow.com/questions/20001229/',
+			'type': ACTIVITY_TYPE_SO_VISIT
+		}
+		response = self.api.put(URL_ACTIVITY.format(self.tester_g_uuid), data=json.dumps(an_activity),
+								headers=self.header, content_type='application/json')
+		self.assertEqual(200, response.status_code)
+
+		response = self.api.get(URL_ACTIVITY.format(self.tester_g_uuid), headers=self.header)
+		self.assertEqual(200, response.status_code)
+		data = response.get_json()
+		print(data)
+		self.assertTrue('activities' in data.keys())
+		self.assertEqual(1, len(data['activities']))
+		self.assertEqual(an_activity['url'], data['activities'][0]['url'])
+
+
+	def test_put_activity(self):
 		with app.test_client() as client:
 			response = client.get(URL_AUTHG.format(AuthGoogle.TESTER_EMAIL, '', ''))
 			self.assertEqual(200, response.status_code)

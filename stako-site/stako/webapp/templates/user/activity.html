@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>ACTIVITY HISTORY</h2>
+    <h3>USER: {{user.nickname}}</h3>
+{% if activity %}
+    <ul class="list-inline">
+    {% for act in activity %}
+        <li class="list-inline-item">
+            <a class="info" href="{{ act.url }}" target="_blank">{{ act.url }}</a>
+        </li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <h2>There is no activity for this week.</h2>
+{% endif %}
+{% endblock %}

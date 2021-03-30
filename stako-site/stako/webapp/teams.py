@@ -1,21 +1,5 @@
-import settings
+# @app.route("/teams/<tags>")
 
-from flask import Flask
-from flask import render_template
-
-import requests
-import logging
-
-logging.basicConfig(level=logging.INFO)
-BASE_URL = settings.QAW_API_URL
-app = Flask(__name__)
-
-@app.route("/")
-def hello():
-    return "Hello World!"
-
-
-@app.route("/teams/<tags>")
 def teams(tags='python'):
     new_team_url = BASE_URL + 'team/'
     tags_list = tags.split(';')
@@ -33,7 +17,7 @@ def _get_teams(tag_list, size=10):
     return result
 
 
-@app.route("/team/<id>")
+# @app.route("/team/<id>")
 def team(id):
     team = _get_team(id)
     logging.info('[GET_TEAM] ID {}: {}'.format(id, team))

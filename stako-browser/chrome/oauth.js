@@ -63,6 +63,7 @@ function authenticateUserStako() {
                         })
                     } else {
                         console.log('FAIL TO RETRIEVE STAKO TOKEN!');
+                        //window.alert("You are currently not logged into STAKO or provided incorrect credentials!");
                         return resolve(false);
                     }
                 });

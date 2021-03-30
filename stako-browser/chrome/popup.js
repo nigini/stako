@@ -15,9 +15,8 @@ function init() {
 
 function triggerAuthenticationAndDisplay() {
   getValidToken(true).then( token => {
-    console.log("tokenMethodEntered");
     if (!token) {
-        setPopupAlert('WE COULD NOT LOG YOU IN! :(');
+      alert("You are currently not logged into STAKO or provided incorrect credentials!");
     } else {
       document.getElementById("user-display").classList.remove("hidden");
       document.getElementById("credentials").classList.remove("cred-flex");
@@ -159,7 +158,6 @@ function trackClick(element) {
 }
 
 function trackMottoAndNickname() {
-  console.log("hello");
   document.getElementById("nickname").addEventListener("input", function() {
     var updatedNickname = document.getElementById("nickname").textContent;
     var update = {

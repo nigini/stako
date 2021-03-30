@@ -22,6 +22,7 @@ def hello():
 @app.route("/user/<uuid>/activity")
 def user_activities(uuid):
     logging.info('ACTIVITIES FOR {}'.format(uuid))
+    print(request.data)
     r_data = request.get_json()
     if r_data and ('token' in r_data.keys()):
         logging.debug('REQUEST DATA: {}'.format(r_data))

@@ -4,14 +4,13 @@
     <h2>ACTIVITY HISTORY</h2>
     <h3>USER: {{user.nickname}}</h3>
 {% if activity %}
-    <ul class="list-inline">
+    <div id="accordion"></div>
+    <div id="data">
     {% for act in activity %}
-        <li class="list-inline-item">
-            <a class="info" href="{{ act.url }}" target="_blank">{{ act.url }}</a>
-        </li>
+        <div data-url={{act.url}}>{{ message }}</div>
     {% endfor %}
-    </ul>
+    </div>
 {% else %}
-    <h2>There is no activity for this week.</h2>
+    <h4>There is no activity for this week.</h4>
 {% endif %}
 {% endblock %}

@@ -8,7 +8,12 @@ function init() {
     var pass = document.getElementById("password").value;
     var wholeUser = {username: user, password: pass};
     chrome.storage.local.set({'USER': wholeUser});
+    triggerAuthenticationAndDisplay();
   });
+  triggerAuthenticationAndDisplay();
+}
+
+function triggerAuthenticationAndDisplay() {
   getValidToken(true).then( token => {
     console.log("tokenMethodEntered");
     if (!token) {

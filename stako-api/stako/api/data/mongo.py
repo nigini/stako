@@ -124,7 +124,6 @@ class ExperimentMongo:
 		if a_user:
 			return loads(dumps(a_user))
 		else:
-			print("Something went wrong")
 			return {}
 
 	def get_all(self):

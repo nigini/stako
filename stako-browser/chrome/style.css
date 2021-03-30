@@ -255,9 +255,12 @@ form .buttons .submit:hover {background-color: #14892c;}
 }
 
 #credentials {
-  display: flex;
   flex-direction: column;
   width: 80%;
+}
+
+.cred-flex {
+  display: flex;
 }
 
 #cred-submit {

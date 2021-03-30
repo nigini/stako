@@ -1,38 +1,30 @@
 window.addEventListener("load", init);
 
 function init() {
-  var loggedIn = getCredentials();
-  if(loggedIn) {
-    displayVisit();
-    addButtonFunctionality();
-    loadCarosel();
-    trackCarouselClick();
-    trackMottoAndNickname();
-    getAlerts();
-  }
-}
-
-function getCredentials() {
-  var displayLogin = true;
-  chrome.storage.local.get(['USER'], function(result) {
-    if(result.username && result.password) {
-      displayLogin = verifyCredentials();
+  document.getElementById("user-display").classList.add("hidden");
+  document.getElementById("credentials").classList.add("cred-flex");
+  document.getElementById("cred-submit").addEventListener('click', function (e) {
+    var user = document.getElementById("username").value;
+    var pass = document.getElementById("password").value;
+    var wholeUser = {username: user, password: pass};
+    chrome.storage.local.set({'USER': wholeUser});
+  });
+  getValidToken(true).then( token => {
+    console.log("tokenMethodEntered");
+    if (!token) {
+        setPopupAlert('WE COULD NOT LOG YOU IN! :(');
+    } else {
+      document.getElementById("user-display").classList.remove("hidden");
+      document.getElementById("credentials").classList.remove("cred-flex");
+      document.getElementById("credentials").classList.add("hidden");
+      displayVisit();
+      addButtonFunctionality();
+      loadCarosel();
+      trackCarouselClick();
+      trackMottoAndNickname();
+      getAlerts();
     }
   });
-  if(displayLogin) {
-    document.getElementById("user-display").classList.add("hidden");
-    document.getElementById("cred-submit").addEventListener('click', function (e) {
-      document.getElementById("username").value = "";
-      document.getElementById("password").value = "";
-    });
-    return false;
-  } else {
-    return true;
-  }
-}
-
-function verifyCredentials() {
-  return true;
 }
 
 // update popup display with latest visit

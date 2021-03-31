@@ -1,26 +1,18 @@
-window.onload = function () {
-    //chrome.storage.local.remove('STAKO_TOKEN');
-    //chrome.storage.local.remove('USER');
-    getValidToken(true).then( token => {
-        if (!token) {
-            setPopupAlert('WE COULD NOT LOG YOU IN! :(');
-        } else {
-            updatePopupData();
-        }
-    });
-};
-
 //const STAKO_API_URL = 'https://stako.org/api/v1/';
 const STAKO_API_URL = "http://127.0.0.1:5000/v1/";
 const STAKO_AUTH_URL = STAKO_API_URL + 'auth/stako';
 const STAKO_USER_URL = STAKO_API_URL + 'user/';
+
+function clearCache() {
+    chrome.storage.local.remove('STAKO_TOKEN');
+    chrome.storage.local.remove('USER');
+}
 
 function getValidToken(reAuth=true) {
     return new Promise(function(resolve, reject) {
         chrome.storage.local.get({'STAKO_TOKEN': null}, function (data) {
             let token = data['STAKO_TOKEN'];
             if (token) {
-                console.log('STAKO_TOKEN: ' + JSON.stringify(token));
                 let utc_now = Math.floor(Date.now() / 1000);
                 if (token.expiration && ((token.expiration-utc_now) > 10)) { // Token expires in 10s or more?
                     return resolve(token);
@@ -48,7 +40,6 @@ function authenticateUserStako() {
     return new Promise(function(resolve, reject) {
         chrome.storage.local.get(['USER'], function(result) {
             result = result['USER'];
-            console.log(result.username + " " + result.password);
             if(!result.username || !result.password) {
                 window.alert("You need to log into STAKO again! Open the popup to proceed!");
                 return resolve(false);
@@ -125,20 +116,6 @@ function authStakoUser(auth_url) {
         .catch(error => {
             console.error(error);
         });
-}
-
-function updatePopupData() {
-    chrome.storage.local.get({'email': null}, function (data) {
-        if(data) document.getElementById('login').innerText = data['email'];
-    });
-    chrome.storage.local.get({'STAKO_USER': null}, function (data) {
-        if (data) {
-            let user = data['STAKO_USER'];
-            console.log('CACHED USER: ' + JSON.stringify(user));
-            document.getElementById('nickname').innerText = user.nickname;
-            document.getElementById('motto').innerText = user.motto;
-        }
-    });
 }
 
 function setPopupAlert(alert) {

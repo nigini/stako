@@ -39,6 +39,9 @@ class Question:
             response = requests.get(r_url)
             if response.status_code == 200:
                 return response.json()['items']
+            else:
+                logging.error('[DATA:SO] Could not retrieve data from StackOverflow: {}'.format(response.text))
+                return []
         else:
             return Question._test_questions(question_ids)
 

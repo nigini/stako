@@ -1,3 +1,4 @@
+import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.json_util import loads, dumps
@@ -174,7 +175,7 @@ class APIMongo:
 			time_constaint['$lte'] = int(end_date)
 		if time_constaint:
 			query['timestamp'] = time_constaint
-		result = collection.find(query, {'_id': 0, 'url': 1, 'timestamp': 1})
+		result = collection.find(query, {'_id': 0, 'url': 1, 'timestamp': 1}).sort('timestamp', pymongo.DESCENDING)
 		to_return = []
 		if result:
 			for act in result:

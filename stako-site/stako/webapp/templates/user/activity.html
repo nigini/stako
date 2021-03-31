@@ -7,10 +7,11 @@
     <div id="accordion"></div>
     <div id="data">
     {% for act in activity %}
-        <div data-url={{act.url}}>{{ message }}</div>
+        <div data-url={{act.url}} data-timestamp={{act.timestamp}}></div>
     {% endfor %}
     </div>
 {% else %}
     <h4>There is no activity for this week.</h4>
 {% endif %}
+<script>show_activity()</script>
 {% endblock %}

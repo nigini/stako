@@ -5,6 +5,7 @@ from flask import Flask
 from flask import request
 from flask import render_template
 import logging
+from flask_cors import CORS
 
 if settings.STAKO_DEBUG:
     logging.basicConfig(level=logging.DEBUG)
@@ -12,6 +13,7 @@ else:
     logging.basicConfig(level=logging.INFO)
 BASE_URL = settings.STAKO_API_URL
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route("/")
@@ -22,13 +24,11 @@ def hello():
 @app.route("/user/<uuid>/activity")
 def user_activities(uuid):
     logging.info('ACTIVITIES FOR {}'.format(uuid))
-    print(request.data)
-    r_data = request.get_json()
-    if r_data and ('token' in r_data.keys()):
-        logging.debug('REQUEST DATA: {}'.format(r_data))
-        user = stako_user.get_user(uuid, r_data.get('token'))
+    token = request.headers.get('token')
+    if token:
+        user = stako_user.get_user(uuid, token)
         if user:
-            act = stako_user.get_activities(uuid, r_data.get('token'))
+            act = stako_user.get_activities(uuid, token)
             history = []
             if act and ('activities' in act):
                 history = act['activities']

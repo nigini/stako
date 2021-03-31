@@ -174,7 +174,6 @@ class UserActivity(APIBase):
             end = request.args.get('date_end', None)
             act = self.data_source.get_activities(uuid, start_date=start, end_date=end)
         to_return = {'activities': act}
-        logging.debug('[STAKO:API:ACTIVITY] Returned: {}'.format(to_return))
         return to_return
 
     def post(self, uuid):

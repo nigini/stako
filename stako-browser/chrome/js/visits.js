@@ -1,5 +1,7 @@
 window.addEventListener("load", init_visits);
 const STAKO_API_USER_LOG = STAKO_API_URL + 'user/{}/activity/'
+const STAKO_HISTORY_VALUE = 'stako_history';
+const STAKO_HISTORY_KEY = 'source';
 
 function init_visits() {
     getValidToken(true).then(token => {
@@ -50,11 +52,15 @@ function fill_up_data(activity_data) {
 }
 
 function getEntryHTML(visit_date, visit_url) {
-    return '<li>(' + getFullTime(visit_date) + ') ' + visit_url + '</li>'
+    let url = new URL(visit_url);
+    url.searchParams.set(STAKO_HISTORY_KEY, STAKO_HISTORY_VALUE);
+    let link_url = '<a href="{}" target="_blank">'.replace('{}', url.toString())
+        + url.hostname + url.pathname + '</a>';
+    return '<li>(' + getFullTime(visit_date) + ') ' + link_url + '</li>';
 }
 
 function timestampToDate(stakoTimestamp) {
-    return new Date(parseInt(stakoTimestamp+'000'));
+    return new Date(stakoTimestamp * 1000);
 }
 
 function getFullTime(date) {

@@ -1,5 +1,3 @@
-import sys
-import os
 from datetime import datetime
 import argparse
 import sys
@@ -54,23 +52,29 @@ def update_summary(uuid, force_restart=False, timestamp=None):
     print("Updated user {}: {}".format(user['uuid'], result))
 
 
+# CLECK setting to verify what experiments are available.
+def update_add_experiment(email, experiment_name, experiment_condition):
+    result = exp.add_participant_experiment(email, experiment_name, experiment_condition)
+    print("Participant added to experiment? {}".format(result))
+
 parser = argparse.ArgumentParser(description='EXPERIMENT PARTICIPANTS MANAGEMENT SCRIPT')
 subparsers = parser.add_subparsers(help='Commands', dest='command')
 
-update_c = subparsers.add_parser('update_summary', help='Updates weekly activities summary.')
-update_c.add_argument('--uuid', help='Updates the participant weekly activities with given UUID.')
-update_c.add_argument('--all', action='store_true', help='Updates all participants weekly activities.')
-update_c.add_argument('--refresh', action='store_true', help='Force recreating weekly activities.')
-update_c.add_argument('--timestamp',
+update_s_c = subparsers.add_parser('update_summary', help='Updates weekly activities summary.')
+update_s_c.add_argument('--uuid', help='Updates the participant weekly activities with given UUID.')
+update_s_c.add_argument('--all', action='store_true', help='Updates all participants weekly activities.')
+update_s_c.add_argument('--refresh', action='store_true', help='Force recreating weekly activities.')
+update_s_c.add_argument('--timestamp',
                       help='Updates summary with activities that happened after the UTC TIMESTAMP in seconds.')
 
 create_c = subparsers.add_parser('create', help='Create new research participant')
 create_c.add_argument('email', help='Email account used to authenticate user.')
 create_c.add_argument('--role', help='A user role: [<participant>, researcher, tester].', default='participant')
 
-create_c = subparsers.add_parser('update', help='Update participant')
-create_c.add_argument('email', help='Email account used to authenticate user.')
-create_c.add_argument('--passkey', action='store_true', help='Regenerate the participant\'s passkey.')
+update_c = subparsers.add_parser('update', help='Update participant')
+update_c.add_argument('email', help='Email account used to authenticate user.')
+update_c.add_argument('--passkey', action='store_true', help='Regenerate the participant\'s passkey.')
+update_c.add_argument('--add_experiment', help='Add to experiment EXP_NAME::EXP_CONDITION (double colons required).')
 
 
 args = parser.parse_args()
@@ -79,6 +83,12 @@ if args.command == 'create':
 elif args.command == 'update':
     if args.passkey and args.email:
         recreate_password(args.email)
+    elif args.add_experiment and args.email:
+        experiment = args.add_experiment.split('::')
+        if len(experiment) == 2:
+            update_add_experiment(args.email, experiment[0], experiment[1])
+        else:
+            print('For <add_experiment>: specify EXP_NAME::EXP_CONDITION (double colons required).')
     else:
         print('For <UPDATE>, specify what you want to change.')
 elif args.command == 'update_summary':

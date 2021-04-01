@@ -1,5 +1,5 @@
-//const STAKO_API_URL = 'https://stako.org/api/v1/';
-const STAKO_API_URL = "http://127.0.0.1:5000/v1/";
+const STAKO_API_URL = 'https://stako.org/api/v1/';
+//const STAKO_API_URL = "http://127.0.0.1:5000/v1/";
 const STAKO_AUTH_URL = STAKO_API_URL + 'auth/stako';
 const STAKO_USER_URL = STAKO_API_URL + 'user/';
 

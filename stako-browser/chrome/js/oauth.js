@@ -1,5 +1,5 @@
 const STAKO_API_URL = 'https://stako.org/api/v1/';
-//const STAKO_API_URL = "http://127.0.0.1:5000/v1/";
+// const STAKO_API_URL = "http://127.0.0.1:5000/v1/";
 const STAKO_AUTH_URL = STAKO_API_URL + 'auth/stako';
 const STAKO_USER_URL = STAKO_API_URL + 'user/';
 
@@ -22,9 +22,7 @@ function getValidToken(reAuth=true) {
             }
             if(reAuth) {
                 return authenticateUserStako().then(success => {
-                    if(success) {
-                        return resolve(getValidToken(false));
-                    }
+                    return resolve(getValidToken(false));
                 });
             }
             return resolve(null);
@@ -41,7 +39,6 @@ function authenticateUserStako() {
         chrome.storage.local.get(['USER'], function(result) {
             result = result['USER'];
             if(!result.username || !result.password) {
-                window.alert("You need to log into STAKO again! Open the popup to proceed!");
                 return resolve(false);
             }
             if(result.username && result.password) {
@@ -54,7 +51,6 @@ function authenticateUserStako() {
                         })
                     } else {
                         console.log('FAIL TO RETRIEVE STAKO TOKEN!');
-                        //window.alert("You are currently not logged into STAKO or provided incorrect credentials!");
                         return resolve(false);
                     }
                 });
@@ -101,7 +97,6 @@ function authStakoUser(auth_url) {
             if (response.status === 200) {
                 return response.json()
                     .then( stakoToken => {
-                        console.log('AUTH TOKEN: ' + JSON.stringify(stakoToken));
                         return stakoToken;
                     });
             } else if (response.status === 401) {
@@ -180,14 +175,6 @@ function getSetup() {
                   }
               });
             chrome.storage.local.set({'EXPERIMENT' : experimentType});
-            //Testing for different kinds of experiments.
-            /*
-            var test = {
-                experiments: {'a6af8190add5594fa190bb4d897aa25e84d5bbd1e679473492050a587bef0d18': '0fcd568a5cb9bdb4677b69354b11ee415af8f784519cff3da49a26f84eaee7f2'},
-                uuid: uuid
-                };
-            chrome.storage.local.set({'EXPERIMENT': test});
-            */
       } else {
           console.log('CANNOT SYNC ACTIVITY WITHOUT A USER_ID! TRY TO LOGIN AGAIN!');
       }

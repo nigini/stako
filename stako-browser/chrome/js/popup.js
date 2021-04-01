@@ -21,19 +21,23 @@ function init() {
     document.getElementById("user-display").classList.add("hidden");
     document.getElementById("credentials").classList.add("cred-flex");
     document.getElementById("cred-submit").addEventListener('click', function (e) {
-        var user = document.getElementById("username").value;
-        var pass = document.getElementById("password").value;
-        var wholeUser = {username: user, password: pass};
+        let user = document.getElementById("username").value;
+        let pass = document.getElementById("password").value;
+        let wholeUser = {username: user, password: pass};
         chrome.storage.local.set({'USER': wholeUser});
-        triggerAuthenticationAndDisplay();
+        triggerAuthenticationAndDisplay(true);
     });
     triggerAuthenticationAndDisplay();
 }
 
-function triggerAuthenticationAndDisplay() {
+function triggerAuthenticationAndDisplay(clicked=false) {
     getValidToken(true).then(token => {
         if (!token) {
-            alert("You are currently not logged into STAKO or provided incorrect credentials!");
+            if(clicked) {
+                $("#login-danger").html("We could not find a valid user with this information! :(").show();
+            } else {
+                $("#login-warning").html("We need you to (re)enter your Email and Passkey! ;)").show();
+            }
         } else {
             document.getElementById("user-display").classList.remove("hidden");
             document.getElementById("credentials").classList.remove("cred-flex");
@@ -54,11 +58,15 @@ function updateProfileInfo() {
     //     if(data) document.getElementById('login').innerText = data['email'];
     // });
     chrome.storage.local.get({'STAKO_USER': null}, function (data) {
+        let nickname = 'Type in your Nickname';
+        let motto = 'Type in your Motto'
         if (data) {
             let user = data['STAKO_USER'];
-            $('#nickname').html(user.nickname);
-            $('#motto').html(user.motto);
+            if(user.nickname.trim() !== '') nickname = user.nickname.trim();
+            if(user.motto.trim() !== '') motto = user.motto.trim();
         }
+        $('#nickname').html(nickname);
+        $('#motto').html(motto);
     });
 }
 

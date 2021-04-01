@@ -61,3 +61,7 @@
 .dismiss:hover {
   color: #f48024;
 }
+
+.last {
+  padding-right: 300px;
+}

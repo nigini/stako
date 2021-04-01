@@ -54,7 +54,11 @@ function insertBanner(experiments) {
   }
   banner.classList.add("scrollmenu");
   var crewWord = document.createElement("p");
-  crewWord.textContent = "Crew";
+  if(type === value[0]) {
+    crewWord.textContent = "Crews";
+  } else {
+    crewWord.textContent = "Crew";
+  }
   banner.appendChild(crewWord);
   return banner;
 }
@@ -153,6 +157,14 @@ function insertDesign(banner) {
         tag.classList.add("hidden");
       }
     }
+    if(tags.length !== 0) {
+      var lastChild = banner.lastElementChild;
+      var lastChildContainer = document.createElement("div");
+      banner.removeChild(lastChild);
+      lastChildContainer.appendChild(lastChild);
+      lastChildContainer.classList.add("last");
+      banner.appendChild(lastChildContainer);
+    }
   }
 }
 
@@ -199,7 +211,7 @@ function getTimeOut(element) {
       if(element.classList.contains("post-tag")) {
         var tag_link = "https://stackoverflow.com/" + element.href;
         chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:mouse", url: window.location.href, time: totalTime, ele: tag_link}, function(response){
-          console.log(response.testType + " " + response.testURL + " " + response.testTime);
+          //console.log(response.testType + " " + response.testURL + " " + response.testTime);
         });
       } else if(element.classList.contains("user-info")) {
         var tag_link = "https://stackoverflow.com/" + element.href;
@@ -207,7 +219,7 @@ function getTimeOut(element) {
         var link = linkElement.href;
         var tag_link = "https://stackoverflow.com/" + link;
         chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:mouse", url: window.location.href, time: totalTime, ele: tag_link}, function(response){
-          console.log(response.testType + " " + response.testURL + " " + response.testTime);
+          //console.log(response.testType + " " + response.testURL + " " + response.testTime);
         });
       }
     }
@@ -221,7 +233,7 @@ function trackClick(element) {
     element.addEventListener('click', function (e) {
       var tag_link = "https://stackoverflow.com/" + element.href;
       chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: window.location.href, ele: tag_link}, function(response) {
-        console.log(response.testType + " " + response.testURL);
+        //console.log(response.testType + " " + response.testURL);
       });
     });
   } else if(element.classList.contains("user-info")){
@@ -230,7 +242,7 @@ function trackClick(element) {
     element.addEventListener('click', function (e) {
       var tag_link = "https://stackoverflow.com/" + link;
       chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: window.location.href, ele:tag_link}, function(response) {
-        console.log(response.testType + " " + response.testURL);
+        //console.log(response.testType + " " + response.testURL);
       });
     });
   }
@@ -240,7 +252,7 @@ function trackDismiss(element) {
   //Tracks whether the dismiss button has been clicked on.
   element.addEventListener('click', function (e) {
     chrome.runtime.sendMessage({extensiondId: "background.js", type: "stackoverflow:click", url: window.location.href, ele:"Dismiss-Click"}, function(response) {
-      console.log(response.testType + " " + response.testURL);
+      //console.log(response.testType + " " + response.testURL);
     });
   });
 }

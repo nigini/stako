@@ -65,7 +65,7 @@ def basic_report():
     accounts = exp.get_all()
     for a in accounts:
         acts = api.get_activities(a['uuid'])
-        last_act = '0000-00-00' if len(acts) == 0 else str(datetime.fromtimestamp(acts[len(acts)-1]['timestamp']).date())
+        last_act = '0000-00-00' if len(acts) == 0 else str(datetime.fromtimestamp(acts[0]['timestamp']).date())
         print('{} : {} : {}'.format(a['email'], len(acts), last_act))
 
 

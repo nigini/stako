@@ -220,11 +220,12 @@ class UserSummary:
 				if not last_updated[year].get(week, None):
 					last_updated[year][week] = copy.deepcopy(empty_summary[year][week])
 					last_updated[year][week]['top_tags'].pop('top_tag', None)
-				for tag in questions_data[question_id]['tags']:
-					if tag not in last_updated[year][week]['top_tags'].keys():
-						last_updated[year][week]['top_tags'][tag] = \
-							copy.deepcopy(empty_summary[year][week]['top_tags']['top_tag'])
-					last_updated[year][week]['top_tags'][tag]['pages_visited'] += 1
+				if question_id in questions_data.keys():
+					for tag in questions_data[question_id]['tags']:
+						if tag not in last_updated[year][week]['top_tags'].keys():
+							last_updated[year][week]['top_tags'][tag] = \
+								copy.deepcopy(empty_summary[year][week]['top_tags']['top_tag'])
+						last_updated[year][week]['top_tags'][tag]['pages_visited'] += 1
 				last_updated[year][week]['pages_visited'] += 1
 			return self.api.save_user(user)
 		return False

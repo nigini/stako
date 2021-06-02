@@ -5,6 +5,7 @@ import pathlib
 sys.path.append(pathlib.Path(__file__).parent.absolute().__str__() + '/..')
 import stako.settings as settings
 from stako.api.data.mongo import APIMongo, ExperimentMongo, UserSummary
+from stako.api.data.data import StakoActivity
 
 api = APIMongo(settings)
 exp = ExperimentMongo(settings)
@@ -58,17 +59,6 @@ def update_add_experiment(email, experiment_name, experiment_condition):
     print("Participant added to experiment? {}".format(result))
 
 
-def basic_report():
-    print("===========================================================")
-    print("BASIC ACT REPORT: {}".format(datetime.now()))
-    print("===========================================================")
-    accounts = exp.get_all()
-    for a in accounts:
-        acts = api.get_activities(a['uuid'])
-        last_act = '0000-00-00' if len(acts) == 0 else str(datetime.fromtimestamp(acts[0]['timestamp']).date())
-        print('{} : {} : {}'.format(a['email'], len(acts), last_act))
-
-
 parser = argparse.ArgumentParser(description='EXPERIMENT PARTICIPANTS MANAGEMENT SCRIPT')
 subparsers = parser.add_subparsers(help='Commands', dest='command')
 
@@ -87,9 +77,6 @@ update_c = subparsers.add_parser('update', help='Update participant')
 update_c.add_argument('email', help='Email account used to authenticate user.')
 update_c.add_argument('--passkey', action='store_true', help='Regenerate the participant\'s passkey.')
 update_c.add_argument('--add_experiment', help='Add to experiment EXP_NAME::EXP_CONDITION (double colons required).')
-
-report = subparsers.add_parser('report', help='Report participant activities.')
-report.add_argument('basic', help='Show email : SO_visit_count : last_SO_visit.')
 
 
 args = parser.parse_args()
@@ -113,10 +100,5 @@ elif args.command == 'update_summary':
         update_summary_all(args.refresh, args.timestamp)
     else:
         print('For <UPDATE_SUMMARY>, please provide a <UUID> or <ALL>!')
-elif args.command == 'report':
-    if args.basic:
-        basic_report()
-    else:
-        print('For <REPORT>, please provide a type <basic>...')
 else:
     parser.print_help()

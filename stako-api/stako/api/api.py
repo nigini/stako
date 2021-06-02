@@ -177,7 +177,7 @@ class UserActivity(APIBase):
         return to_return
 
     def post(self, uuid):
-        self.put(uuid)
+        return self.put(uuid)
 
     def put(self, uuid):
         user = self.data_source.get_user(uuid)
@@ -190,7 +190,6 @@ class UserActivity(APIBase):
                 new_activity['uuid'] = uuid
                 new_activity['url'] = valid_data.pop('url')
                 new_activity['type'] = valid_data.pop('type')
-                #TODO REMOVE DATA
                 new_activity['data'] = valid_data
                 result = self.data_source.save_activity(new_activity)
                 if result:

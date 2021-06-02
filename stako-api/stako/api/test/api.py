@@ -2,7 +2,6 @@ import unittest
 import time
 from pymongo import MongoClient
 import json
-from datetime import datetime
 import stako.settings as settings
 import stako.api.data.mongo as mongo
 from stako.api.data.mongo import ExperimentMongo
@@ -253,8 +252,8 @@ class TestActivityAPI(TestAPI):
 		data = response.get_json()
 		self.assertTrue('activities' in data.keys())
 		self.assertEqual(2, len(data['activities']))
-		self.assertEqual(an_activity['url'], data['activities'][0]['url'])
-		self.assertEqual(another_activity['url'], data['activities'][1]['url'])
+		self.assertEqual(an_activity['url'], data['activities'][1]['url'])
+		self.assertEqual(another_activity['url'], data['activities'][0]['url'])
 
 		# TIME CONSTRAINT
 		time.sleep(2)
@@ -302,6 +301,7 @@ class TestActivityAPI(TestAPI):
 			response = client.post(URL_ACTIVITY.format(self.tester_g_uuid), data=json.dumps(an_activity),
 								   headers=header, content_type='application/json')
 			self.assertEqual(200, response.status_code)
+			#print('POST RESULT: {}'.format(response.))
 			saved_activity = response.get_json()
 			self.assertEqual(self.tester_g_uuid, saved_activity['uuid'])
 			self.assertEqual(an_activity['url'], saved_activity['url'])

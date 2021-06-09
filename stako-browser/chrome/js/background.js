@@ -15,17 +15,19 @@ chrome.runtime.onMessage.addListener(
                 url: request.url,
                 duration: request.time,
                 element: request.ele,
+                origin: request.origin
             };
             saveStakoActivity(mouseOver);
-            sendResponse({testType: request.type, testURL: request.url, testTime: request.time});
+            sendResponse({testType: request.type, testURL: request.url, testTime: request.time, origin: request.origin});
         } else if(request.type == "stackoverflow:click") {
             var click = {
                 type: request.type,
                 url: request.url,
                 element: request.ele,
+                origin: request.origin
             };
             saveStakoActivity(click);
-            sendResponse({testType: request.type, testURL: request.url});
+            sendResponse({testType: request.type, testURL: request.url, origin: request.origin});
         }
     }
 );

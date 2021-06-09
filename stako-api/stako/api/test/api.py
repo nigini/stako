@@ -339,6 +339,7 @@ class TestActivityAPI(TestAPI):
 
 			# FIXING FOR click TYPE
 			another_activity['element'] = 'USER:1234'
+			another_activity['origin'] = 'some_part_of_page'
 			response = client.post(URL_ACTIVITY.format(self.tester_g_uuid), data=json.dumps(another_activity),
 								   headers=header, content_type='application/json')
 			self.assertEqual(200, response.status_code)
@@ -357,6 +358,7 @@ class TestActivityAPI(TestAPI):
 			another_activity['url'] = 'https://www.stako.org/extensions/chrome'
 			another_activity['type'] = ACTIVITY_TYPE_SO_CLICK
 			another_activity['element'] = 'TAG:1234'
+			another_activity['origin'] = 'another_part_of_design'
 			response = client.post(URL_ACTIVITY.format(self.tester_g_uuid), data=json.dumps(another_activity),
 								   headers=header, content_type='application/json')
 			self.assertEqual(200, response.status_code)

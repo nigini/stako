@@ -84,8 +84,8 @@ class StakoActivity:
 
     ACTIVITY_TYPES = {}
     ACTIVITY_TYPES[ACTIVITY_TYPE_SO_VISIT] = []
-    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_MOUSE] = ['element', 'duration']
-    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_CLICK] = ['element']
+    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_MOUSE] = ['element', 'duration', 'origin']
+    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_CLICK] = ['element', 'origin']
 
     @staticmethod
     def get_empty_activity():

@@ -1,6 +1,7 @@
 window.addEventListener("load", init);
 
 function init() {
+  authenticate();
   displayVisit();
   addButtonFunctionality();
   loadCarosel();
@@ -135,7 +136,6 @@ function trackClick(element) {
 }
 
 function trackMottoAndNickname() {
-  console.log("hello");
   document.getElementById("nickname").addEventListener("input", function() {
     var updatedNickname = document.getElementById("nickname").textContent;
     var update = {

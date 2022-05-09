@@ -1,13 +1,40 @@
 window.addEventListener("load", init);
 
 function init() {
-  authenticate();
-  displayVisit();
-  addButtonFunctionality();
-  loadCarosel();
-  trackCarouselClick();
-  trackMottoAndNickname();
+  authenticate().then(isAuthenticated => {
+      if(isAuthenticated) {
+          updatePopupUserData();
+          displayVisit();
+          addButtonFunctionality();
+          loadCarosel();
+          trackCarouselClick();
+          trackMottoAndNickname();
+      } else {
+          setPopupAlert('PLEASE AUTHENTICATE!');
+      }
+  })
 }
+
+function updatePopupUserData() {
+    chrome.storage.local.get({'email': null}, function (data) {
+        if(data) document.getElementById('login').innerText = data['email'];
+    });
+    chrome.storage.local.get({'STAKO_USER': null}, function (data) {
+        if (data) {
+            let user = data['STAKO_USER'];
+            console.log('CACHED USER: ' + JSON.stringify(user));
+            document.getElementById('nickname').innerText = user.nickname;
+            document.getElementById('motto').innerText = user.motto;
+        }
+    });
+}
+
+
+function setPopupAlert(alert) {
+    console.log('ALERT: ' + alert.ALERT);
+    document.getElementById('alert').innerText = alert.ALERT;
+}
+
 
 // update popup display with latest visit
 function displayVisit () {

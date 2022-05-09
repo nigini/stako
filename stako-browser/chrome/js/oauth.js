@@ -1,24 +1,24 @@
-window.onload = function () {
-    //chrome.storage.local.remove('STAKO_TOKEN');
-    getValidToken(true).then( token => {
-        if (!token) {
-            setPopupAlert('WE COULD NOT LOG YOU IN! :(');
-        } else {
-            updatePopupData();
-        }
-    });
-};
-
 const STAKO_API_URL = 'https://stako.org/api/v1/';
-const STAKO_AUTH_URL = STAKO_API_URL + 'auth/';
+// const STAKO_API_URL = "http://127.0.0.1:5000/v1/";
+const STAKO_AUTH_URL = STAKO_API_URL + 'auth/stako';
 const STAKO_USER_URL = STAKO_API_URL + 'user/';
+
+function clearCache() {
+    chrome.storage.local.remove('STAKO_TOKEN');
+    chrome.storage.local.remove('USER');
+}
+
+function authenticate() {
+    return getValidToken(true).then(token =>{
+       return token != null;
+    });
+}
 
 function getValidToken(reAuth=true) {
     return new Promise(function(resolve, reject) {
         chrome.storage.local.get({'STAKO_TOKEN': null}, function (data) {
             let token = data['STAKO_TOKEN'];
             if (token) {
-                console.log('STAKO_TOKEN: ' + JSON.stringify(token));
                 let utc_now = Math.floor(Date.now() / 1000);
                 if (token.expiration && ((token.expiration-utc_now) > 10)) { // Token expires in 10s or more?
                     return resolve(token);
@@ -27,13 +27,40 @@ function getValidToken(reAuth=true) {
                 }
             }
             if(reAuth) {
-                return authenticateUser().then(success => {
-                    if(success) {
-                        return resolve(getValidToken(false));
-                    }
+                return authenticateUserStako().then(success => {
+                    return resolve(getValidToken(false));
                 });
             }
             return resolve(null);
+        });
+    });
+}
+
+/**
+ * Implementation of authentication using the STAKO system instead of Google.
+ */
+
+function authenticateUserStako() {
+    return new Promise(function(resolve, reject) {
+        chrome.storage.local.get(['USER'], function(result) {
+            result = result['USER'];
+            if(!result || !result.username || !result.password) {
+                return resolve(false);
+            }
+            if(result.username && result.password) {
+                const auth_url = STAKO_AUTH_URL + `?email=${result.username}&pass_key=${result.password}`;
+                authStakoUser(auth_url).then(stakoToken => {
+                    if (stakoToken) {
+                        chrome.storage.local.set({'STAKO_TOKEN': stakoToken});
+                        updateStakoUser(stakoToken.uuid).then(user => {
+                            return resolve(true);
+                        })
+                    } else {
+                        console.log('FAIL TO RETRIEVE STAKO TOKEN!');
+                        return resolve(false);
+                    }
+                });
+            }
         });
     });
 }
@@ -41,7 +68,7 @@ function getValidToken(reAuth=true) {
  * Request CHROME_USER and validate it as a STAKO_USER.
  * If the authentication happens correctly, this method will also update the cached STAKO_USER.
  */
-function authenticateUser() {
+function authenticateGoogleUser() {
     return new Promise(function(resolve, reject) {
         chrome.identity.getAuthToken({interactive: true}, function (token) {
             if (chrome.runtime.lastError) {
@@ -51,7 +78,8 @@ function authenticateUser() {
                 chrome.identity.getProfileUserInfo(function (info) {
                     console.log('AUTHENTICATING: ' + info.email + ' - GOOGLE_ID: ' + info.id + ' - TOKEN: ' + token);
                     chrome.storage.local.set({email: info.email});
-                    authStakoUser(info.email, info.id, token).then(stakoToken => {
+                    const auth_url = STAKO_AUTH_URL + `?email=${info.email}&google_id=${info.id}&token=${token}`;
+                    authStakoUser(auth_url).then(stakoToken => {
                         if (stakoToken) {
                             chrome.storage.local.set({'STAKO_TOKEN': stakoToken});
                             updateStakoUser(stakoToken.uuid).then(user => {
@@ -68,9 +96,7 @@ function authenticateUser() {
     });
 }
 
-function authStakoUser(userEmail, googleID, oauthToken) {
-    console.log('authenticating stako user: ' + userEmail);
-    const auth_url = STAKO_AUTH_URL + `?email=${userEmail}&google_id=${googleID}&token=${oauthToken}`;
+function authStakoUser(auth_url) {
     const request = new Request(auth_url, {method: 'GET'});
     return fetch(request)
         .then(response => {
@@ -92,20 +118,6 @@ function authStakoUser(userEmail, googleID, oauthToken) {
         .catch(error => {
             console.error(error);
         });
-}
-
-function updatePopupData() {
-    chrome.storage.local.get({'email': null}, function (data) {
-        if(data) document.getElementById('login').innerText = data['email'];
-    });
-    chrome.storage.local.get({'STAKO_USER': null}, function (data) {
-        if (data) {
-            let user = data['STAKO_USER'];
-            console.log('CACHED USER: ' + JSON.stringify(user));
-            document.getElementById('nickname').innerText = user.nickname;
-            document.getElementById('motto').innerText = user.motto;
-        }
-    });
 }
 
 function setPopupAlert(alert) {
@@ -170,14 +182,6 @@ function getSetup() {
                   }
               });
             chrome.storage.local.set({'EXPERIMENT' : experimentType});
-            //Testing for different kinds of experiments.
-            /*
-            var test = {
-                experiments: {'a6af8190add5594fa190bb4d897aa25e84d5bbd1e679473492050a587bef0d18': '0fcd568a5cb9bdb4677b69354b11ee415af8f784519cff3da49a26f84eaee7f2'},
-                uuid: uuid
-                };
-            chrome.storage.local.set({'EXPERIMENT': test});
-            */
       } else {
           console.log('CANNOT SYNC ACTIVITY WITHOUT A USER_ID! TRY TO LOGIN AGAIN!');
       }

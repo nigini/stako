@@ -2,10 +2,16 @@ import uuid
 from datetime import datetime, timezone
 import hashlib
 
+UUID_REGEX = "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}"
+
 
 def get_utc_timestamp():
     now = datetime.utcnow().replace(tzinfo=timezone.utc)
     return int(now.timestamp())
+
+
+def string_hash(string):
+    return hashlib.sha256(string.encode()).hexdigest()
 
 
 class Experiment:
@@ -18,15 +24,15 @@ class Experiment:
         Experiment.EXPERIMENTS = settings.STAKO_EXPERIMENTS
 
     @staticmethod
-    def _hash_string(str):
-        return hashlib.sha256(str.encode()).hexdigest()
+    def _hash_string(string):
+        return None
 
     @staticmethod
     def get_experiments_hash(experiments):
         result = {}
         for exp in experiments.keys():
-            exp_hash = Experiment._hash_string(exp)
-            result[exp_hash] = Experiment._hash_string(experiments[exp])
+            exp_hash = string_hash(exp)
+            result[exp_hash] = string_hash(experiments[exp])
         return result
 
     @staticmethod
@@ -34,6 +40,7 @@ class Experiment:
         return {
             'uuid': str(uuid.uuid4()),
             'email': '',
+            'pass_hash': '',
             'roles': [],
             'experiments': {}
         }
@@ -77,8 +84,8 @@ class StakoActivity:
 
     ACTIVITY_TYPES = {}
     ACTIVITY_TYPES[ACTIVITY_TYPE_SO_VISIT] = []
-    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_MOUSE] = ['element', 'duration']
-    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_CLICK] = ['element']
+    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_MOUSE] = ['element', 'duration', 'origin']
+    ACTIVITY_TYPES[ACTIVITY_TYPE_SO_CLICK] = ['element', 'origin']
 
     @staticmethod
     def get_empty_activity():
@@ -88,6 +95,20 @@ class StakoActivity:
             'type': '',
             'timestamp': get_utc_timestamp(),
             'data': {}
+        }
+
+
+class StakoNotification:
+
+    NOTIFICATION_TYPE = ['info', 'alert', 'error']
+
+    @staticmethod
+    def get_empty_activity():
+        return {
+            'uuid': '',
+            'type': '',
+            'created': get_utc_timestamp(),
+            'delivered': None
         }
 
 

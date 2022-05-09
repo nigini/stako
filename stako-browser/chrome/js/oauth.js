@@ -1,16 +1,13 @@
-//chrome.action.onClicked.addListener(authenticate);
-
-function authenticate() {
-    console.log("HELLO AUTH!!!");
+window.onload = function () {
     //chrome.storage.local.remove('STAKO_TOKEN');
-    getValidToken(true).then(token => {
+    getValidToken(true).then( token => {
         if (!token) {
             setPopupAlert('WE COULD NOT LOG YOU IN! :(');
         } else {
             updatePopupData();
         }
-    })
-}
+    });
+};
 
 const STAKO_API_URL = 'https://stako.org/api/v1/';
 const STAKO_AUTH_URL = STAKO_API_URL + 'auth/';

@@ -1,11 +1,10 @@
 import unittest
-import settings
-
 from pymongo import MongoClient
-import mongo
-from mongo import ExperimentMongo, APIMongo
-from data import StakoActivity
-from stackoverflow import Question
+import stako.api.data.mongo as mongo
+from stako.api.data.mongo import ExperimentMongo, APIMongo
+import stako.settings as settings
+from stako.api.data.data import StakoActivity
+from stako.api.data.stackoverflow import Question
 
 # This data matches the MOCK DATA in the test_stakoverflow.json file
 TESTER_EMAIL = 'user@tester.com'
@@ -101,3 +100,22 @@ class TestStackOverflow(unittest.TestCase):
 		self.assertEqual(2, len(response))
 		self.assertEqual('41051434', response[0])
 		self.assertEqual('16819222', response[1])
+
+		#SHOULD NOT INCLUDE AS URL NOT COMPLETE
+		test_activity = StakoActivity.get_empty_activity()
+		test_activity['uuid'] = self.TESTER_UUID
+		test_activity['url'] = 'https://stackoverflow.com/'
+		test_activity['type'] = StakoActivity.ACTIVITY_TYPE_SO_VISIT
+		saved = self.api.save_activity(test_activity)
+		self.assertTrue(saved)
+
+		test_activity = StakoActivity.get_empty_activity()
+		test_activity['uuid'] = self.TESTER_UUID
+		test_activity['url'] = 'https://stackoverflow.com/questions'
+		test_activity['type'] = StakoActivity.ACTIVITY_TYPE_SO_VISIT
+		saved = self.api.save_activity(test_activity)
+		self.assertTrue(saved)
+
+		user_acts = self.activities.find({'uuid': self.TESTER_UUID}, {'_id': 0})
+		response = list(Question.get_visits_questions_keys(user_acts).keys())
+		self.assertEqual(2, len(response))

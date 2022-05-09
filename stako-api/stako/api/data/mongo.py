@@ -1,17 +1,19 @@
+import pymongo
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.json_util import loads, dumps
-import uuid
 from datetime import datetime
 import logging
 import copy
-from stackoverflow import Question
-import data
-from data import StakoUser, Experiment
+import secrets
+from stako.api.data.stackoverflow import Question
+import stako.api.data.data as stako_data
+from stako.api.data.data import StakoUser, Experiment, StakoActivity
 
 COLLECTION_AUTH = 'authorizations'
 COLLECTION_USERS = 'users'
 COLLECTION_ACTIVITIES = 'activities'
+COLLECTION_NOTIFICATIONS = 'notifications'
 
 
 class ExperimentMongo:
@@ -46,6 +48,20 @@ class ExperimentMongo:
 			return True
 		else:
 			return False
+
+	def regen_participant_passkey(self, email):
+		participant = self.get_participant(email)
+		if participant == {}:
+			return None
+		else:
+			pass_key = secrets.token_hex(20)
+			participant['pass_hash'] = stako_data.string_hash(pass_key)
+			updated = self._update_participant(participant)
+			if updated:
+				return pass_key
+			else:
+				return None
+
 
 	# Makes sure the role is part of this participant's roles
 	def add_participant_role(self, email, role):
@@ -103,6 +119,8 @@ class ExperimentMongo:
 
 	def get_participant(self, by_value, by_key='email'):
 		collection = self.db[COLLECTION_AUTH]
+		#by_value = "email=" + by_value
+		#print(by_value)
 		if isinstance(by_value, str):
 			by_value = by_value.lower()
 		a_user = collection.find_one({by_key: by_value}, {'_id': 0})
@@ -147,13 +165,30 @@ class APIMongo:
 		logging.info('[Mongo:SaveActivity] Saved? {}'.format(saved))
 		return saved
 
-	def get_activities(self, user_uuid):
+	def get_activities(self, user_uuid, start_date=None, end_date=None, a_type=StakoActivity.ACTIVITY_TYPE_SO_VISIT):
 		collection = self.db[COLLECTION_ACTIVITIES]
-		a_user = collection.find_one({'uuid': user_uuid}, {'_id': 0})
-		if a_user:
-			return loads(dumps(a_user))
-		else:
-			return {}
+		query = {'uuid': user_uuid, 'type': a_type}
+		time_constaint = {}
+		if start_date:
+			time_constaint['$gte'] = int(start_date)
+		if end_date:
+			time_constaint['$lte'] = int(end_date)
+		if time_constaint:
+			query['timestamp'] = time_constaint
+		result = collection.find(query, {'_id': 0, 'url': 1, 'timestamp': 1, 'data': 1}).sort('timestamp', pymongo.DESCENDING)
+		to_return = []
+		if result:
+			for act in result:
+				to_return.append(act)
+		return to_return
+
+	def get_notifications(self, user_uuid):
+		collection = self.db[COLLECTION_NOTIFICATIONS]
+		notifications = collection.find({'uuid': user_uuid, 'delivered': None}, {'_id': 0})
+		to_return = []
+		if notifications:
+			pass
+		return to_return
 
 
 class UserSummary:
@@ -171,7 +206,7 @@ class UserSummary:
 			if reset:
 				user['activity']['weekly_summary'] = StakoUser.get_empty_weekly_summary()
 			else:
-				user['activity']['updated'] = data.get_utc_timestamp()
+				user['activity']['updated'] = stako_data.get_utc_timestamp()
 			last_updated = user['activity']['weekly_summary']
 			act_questions_ids = self.so_questions.get_visits_questions_keys(user_act)
 			questions_data = self.so_questions.get_questions(act_questions_ids.keys())
@@ -185,11 +220,12 @@ class UserSummary:
 				if not last_updated[year].get(week, None):
 					last_updated[year][week] = copy.deepcopy(empty_summary[year][week])
 					last_updated[year][week]['top_tags'].pop('top_tag', None)
-				for tag in questions_data[question_id]['tags']:
-					if tag not in last_updated[year][week]['top_tags'].keys():
-						last_updated[year][week]['top_tags'][tag] = \
-							copy.deepcopy(empty_summary[year][week]['top_tags']['top_tag'])
-					last_updated[year][week]['top_tags'][tag]['pages_visited'] += 1
+				if question_id in questions_data.keys():
+					for tag in questions_data[question_id]['tags']:
+						if tag not in last_updated[year][week]['top_tags'].keys():
+							last_updated[year][week]['top_tags'][tag] = \
+								copy.deepcopy(empty_summary[year][week]['top_tags']['top_tag'])
+						last_updated[year][week]['top_tags'][tag]['pages_visited'] += 1
 				last_updated[year][week]['pages_visited'] += 1
 			return self.api.save_user(user)
 		return False

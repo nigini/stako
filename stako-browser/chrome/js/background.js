@@ -1,6 +1,6 @@
 chrome.webNavigation.onCommitted.addListener(saveTabActivity, {url: [{hostSuffix: 'stackoverflow.com'}]});
 
-// Testing GitHub fork
+const STAKO_ACTIVITY_URL = STAKO_API_URL + 'user/{}/activity/';
 
 /*
 This method listens for a message from design.js, which controls the content scripts of the page. When a mouse over or click message is sent,
@@ -15,17 +15,19 @@ chrome.runtime.onMessage.addListener(
                 url: request.url,
                 duration: request.time,
                 element: request.ele,
+                origin: request.origin
             };
             saveStakoActivity(mouseOver);
-            sendResponse({testType: request.type, testURL: request.url, testTime: request.time});
+            sendResponse({testType: request.type, testURL: request.url, testTime: request.time, origin: request.origin});
         } else if(request.type == "stackoverflow:click") {
             var click = {
                 type: request.type,
                 url: request.url,
                 element: request.ele,
+                origin: request.origin
             };
             saveStakoActivity(click);
-            sendResponse({testType: request.type, testURL: request.url});
+            sendResponse({testType: request.type, testURL: request.url, origin: request.origin});
         }
     }
 );
@@ -40,9 +42,6 @@ function saveTabActivity(details) {
         saveStakoActivity(visit);
     }
 }
-
-//const STAKO_API_URL = 'https://stako.org/api/v1/';
-const STAKO_ACTIVITY_URL = STAKO_API_URL + 'user/{}/activity/';
 
 function saveStakoActivity(activity_body) {
     chrome.storage.local.get({'STAKO_USER': null}, async function (user) {

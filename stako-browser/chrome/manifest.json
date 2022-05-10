@@ -15,7 +15,7 @@
       "48": "img/stako48.png",
       "128": "img/stako128.png"
     },
-    "default_popup": "popup.html",
+    "default_popup": "html/popup.html",
     "default_title": "STAKO"
   },
   "background": {

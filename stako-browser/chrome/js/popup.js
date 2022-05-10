@@ -11,7 +11,7 @@ function logout() {
 
 function visitLog() {
     chrome.tabs.create({
-        'url': chrome.extension.getURL('visits.html')
+        'url': chrome.runtime.getURL('html/visits.html')
     }, function (tab){
         console.log(tab);
     });

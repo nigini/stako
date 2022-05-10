@@ -1,1 +1,0 @@
-importScripts('js/oauth.js', 'js/background.js');

@@ -176,7 +176,8 @@ function trackCarouselClick() {
             extensiondId: "background.js",
             type: "stackoverflow:click",
             url: link,
-            ele: "Carousel-Left-Click"
+            ele: "Carousel-Left-Click",
+            origin: ""
         }, function (response) {
         });
     });
@@ -186,7 +187,8 @@ function trackCarouselClick() {
             extensiondId: "background.js",
             type: "stackoverflow:click",
             url: link,
-            ele: "Carousel-Right-Click"
+            ele: "Carousel-Right-Click",
+            origin: ""
         }, function (response) {
         });
     });
@@ -200,7 +202,8 @@ function trackClick(element) {
             extensiondId: "background.js",
             type: "stackoverflow:click",
             url: link,
-            ele: element.href
+            ele: element.href,
+            origin: ""
         }, function (response) {
         });
         chrome.tabs.create({url: element.href, active: true});

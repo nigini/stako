@@ -19,7 +19,7 @@
     "default_title": "STAKO"
   },
   "background": {
-    "service_worker": "bg-loader.js"
+    "service_worker": "js/bg-loader.js"
   },
   "permissions": [
     "tabs",

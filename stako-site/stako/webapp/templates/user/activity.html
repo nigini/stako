@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h2>ACTIVITY HISTORY</h2>
+    <h3>USER: {{user.nickname}}</h3>
+{% if activity %}
+    <div id="accordion"></div>
+    <div id="data">
+    {% for act in activity %}
+        <div data-url={{act.url}} data-timestamp={{act.timestamp}}></div>
+    {% endfor %}
+    </div>
+{% else %}
+    <h4>There is no activity for this week.</h4>
+{% endif %}
+<script>show_activity()</script>
+{% endblock %}

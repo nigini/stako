@@ -1,7 +1,7 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "STAKO",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "STAKO stores your Stack Overflow visits, provides personalized statistics, and adds to your experience of Stack Overflow Q&A pages.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt1h7WWiEaVx0Voi4A3b40nRSi7JuGr+a/Jce+l1UST77snkNVvc7qAkeugeKRUWyxp9j/CBLBY/EpCfl8D8f3uT6Vb1LY91meIG5BFRaZR3Y4J3ESPReGo2A30Xg8/E2Z5rWXSUIob619iRIB7YMP8HB44CrN5waXChjRAh9VpNejF6OB34LF1wu2p4QUNqmyzblBvSVUc8mRQRDQ+drP5HvIy3LzQMoGwMFBSCYtBTMLvA1zEhOMSyeSSJ1eJk4Ef8Rgfk53VqV34tplTpJxA2RLQATxOv9Pu2GtwRBs/r06fLg+O87XwjtHyC6risydT7T7bM/dXhN2v76AT6RgQIDAQAB",
   "icons": {
@@ -9,25 +9,26 @@
     "48": "img/stako48.png",
     "128": "img/stako128.png"
   },
-  "browser_action": {
+  "action": {
     "default_icon": {
       "16": "img/stako16.png",
       "48": "img/stako48.png",
       "128": "img/stako128.png"
     },
-    "default_popup": "popup.html",
+    "default_popup": "html/popup.html",
     "default_title": "STAKO"
   },
   "background": {
-    "scripts": ["oauth.js", "background.js"],
-    "persistent": true
+    "service_worker": "js/bg-loader.js"
   },
   "permissions": [
     "tabs",
     "storage",
     "webNavigation",
     "identity",
-    "identity.email",
+    "identity.email"
+  ],
+  "host_permissions": [
     "https://stako.org/*",
     "https://stackoverflow.com/*"
   ],
@@ -38,9 +39,11 @@
   "content_scripts": [
     {
       "matches": ["https://*.stackoverflow.com/questions/*"],
-      "css": ["design.css"],
-      "js": ["jquery-3.5.1.min.js", "design.js"]
+      "css": ["css/design.css"],
+      "js": ["js/jquery-3.5.1.min.js", "js/design.js"]
     }
   ],
-  "content_security_policy": "script-src 'self' 'unsafe-eval' https://apis.google.com/; object-src 'self'"
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }
